@@ -33,3 +33,16 @@ html, body {
   --accent: #6227e7;
 }
 
+.react-calendar {
+    width: 100% !important;
+    border: none !important;
+}
+
+.react-calendar__navigation__label{
+  font-weight: 600 !important;
+}
+
+.react-calendar__tile--active {
+    background-color: #C3EBFA !important;
+    color: black !important;
+}
