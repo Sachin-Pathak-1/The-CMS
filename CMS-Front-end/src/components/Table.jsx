@@ -1,9 +1,4 @@
-
-/*
-  PROPS:
-  data     -> array of objects (teachers/students/parents)
-  columns  -> header config array
-*/
+import { Link } from "react-router-dom";
 
 export function Table({ data, columns }) {
 
@@ -99,13 +94,15 @@ export function Table({ data, columns }) {
                                             className={` ${col.className || ""}`}
                                         >
                                             <div className="flex justify-center gap-3">
-                                                <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
-                                                    <img src="/view.png" width={14} height={14} />
-                                                </button>
+                                                <Link to={`/teacher/details`}>
+                                                    <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                                        <img src="/view.png" width={14} height={14} />
+                                                    </button>
 
-                                                <button className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200">
-                                                    <img src="/delete.png" width={14} height={14} />
-                                                </button>
+                                                    <button className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200">
+                                                        <img src="/delete.png" width={14} height={14} />
+                                                    </button>
+                                                </Link>
                                             </div>
                                         </td>
                                     );
