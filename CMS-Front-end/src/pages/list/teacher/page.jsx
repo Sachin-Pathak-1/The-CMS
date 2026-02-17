@@ -1,11 +1,14 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { teachersData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function TeacherListPage () {
+    const [teachers, setTeachers] = useState(teachersData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
 
     const columns = [
@@ -43,6 +46,33 @@ export function TeacherListPage () {
             accessor:"action",   
         },
     ]
+
+    const handleAddTeacher = (formData) => {
+        const toList = (value) =>
+            value
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean);
+
+        const newTeacher = {
+            id: teachers.length ? Math.max(...teachers.map((t) => t.id)) + 1 : 1,
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            teacherId: formData.teacherId.trim(),
+            subjects: toList(formData.subjects),
+            classes: toList(formData.classes),
+            phone: formData.phone.trim(),
+            address: formData.address.trim(),
+            photo: formData.photo.trim(),
+        };
+
+        setTeachers((prev) => [newTeacher, ...prev]);
+        setIsAddModalOpen(false);
+    };
+
+    const handleDeleteTeacher = (teacherId) => {
+        setTeachers((prev) => prev.filter((teacher) => teacher.id !== teacherId));
+    };
     
     return(
         <Layout>
@@ -59,17 +89,26 @@ export function TeacherListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={teachersData} />
+                <Table columns={columns} data={teachers} onDelete={handleDeleteTeacher} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddTeacher}
+            />
         </Layout>
     );
 }
