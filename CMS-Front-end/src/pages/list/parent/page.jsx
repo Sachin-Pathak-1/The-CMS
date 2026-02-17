@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
@@ -6,6 +7,7 @@ import { parentsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function ParentListPage () {
+    const [parents, setParents] = useState(parentsData);
 
 
     const columns = [
@@ -34,6 +36,70 @@ export function ParentListPage () {
         },
     ]
 
+    const handleDeleteParent = (parentId) => {
+        setParents((prev) => prev.filter((parent) => parent.id !== parentId));
+    };
+
+    const getInitials = (name) =>
+        name
+            .split(" ")
+            .map((word) => word[0])
+            .join("")
+            .toUpperCase();
+
+    const renderParentRow = (row, rowIndex) => (
+        <tr
+            key={row.id}
+            className={`border-t hover:bg-gray-50 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+        >
+            {columns.map((col) => {
+                if (col.accessor === "info") {
+                    return (
+                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                                    {getInitials(row.name)}
+                                </div>
+                                <div>
+                                    <p className="font-medium">{row.name}</p>
+                                    <p className="text-xs text-gray-500">{row.email}</p>
+                                </div>
+                            </div>
+                        </td>
+                    );
+                }
+
+                if (col.accessor === "action") {
+                    return (
+                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                            <div className="flex justify-center gap-3">
+                                <Link to="/">
+                                    <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                        <img src="/view.png" width={14} height={14} />
+                                    </button>
+                                </Link>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeleteParent(row.id)}
+                                    className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200"
+                                >
+                                    <img src="/delete.png" width={14} height={14} />
+                                </button>
+                            </div>
+                        </td>
+                    );
+                }
+
+                const value = row[col.accessor];
+                return (
+                    <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        {Array.isArray(value) ? value.join(", ") : value}
+                    </td>
+                );
+            })}
+        </tr>
+    );
+
     return(
         <Layout>
             <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -56,7 +122,7 @@ export function ParentListPage () {
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={parentsData} />
+                <Table columns={columns} data={parents} onDelete={handleDeleteParent} renderRow={renderParentRow} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>
