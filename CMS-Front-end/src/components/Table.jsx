@@ -1,6 +1,37 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-export function Table({ data, columns }) {
+export function Table({ data, columns, onDelete }) {
+    const [tableData, setTableData] = useState(data);
+    const isControlledDelete = typeof onDelete === "function";
+    const rows = isControlledDelete ? data : tableData;
+
+    useEffect(() => {
+        setTableData(data);
+    }, [data]);
+
+    const handleDelete = (rowId) => {
+        if (isControlledDelete) {
+            onDelete(rowId);
+            return;
+        }
+        setTableData((prev) => prev.filter((item) => item.id !== rowId));
+    };
+
+    const renderTableHead = () => (
+        <thead className="bg-gray-50 text-gray-600">
+            <tr>
+                {columns.map((col) => (
+                    <th
+                        key={col.accessor}
+                        className={`p-2 text-left ${col.className || ""}`}
+                    >
+                        {col.header}
+                    </th>
+                ))}
+            </tr>
+        </thead>
+    );
 
     // converts "John Doe" -> "JD"
     const getInitials = (name) => {
@@ -15,27 +46,11 @@ export function Table({ data, columns }) {
     return (
         <div className="bg-white rounded-xl shadow overflow-x-auto">
             <table className="w-full text-sm table-auto">
-                {/* ================= HEADER ================= */}
-                <thead className="bg-gray-50 text-gray-600">
-                    <tr >
-                        {columns.map((col) => (
-                            /*
-                              col.header -> text shown in header
-                              col.className -> responsive hide/show
-                            */
-                            <th
-                                key={col.accessor}
-                                className={`p-2 text-left ${col.className || ""}`}
-                            >
-                                {col.header}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
+                {renderTableHead()}
 
                 {/* ================= BODY ================= */}
                 <tbody>
-                    {data.map((row, rowIndex) => (
+                    {rows.map((row, rowIndex) => (
                         /*
                           row -> one teacher object
                           rowIndex -> used only for zebra striping
@@ -94,15 +109,18 @@ export function Table({ data, columns }) {
                                             className={` ${col.className || ""}`}
                                         >
                                             <div className="flex justify-center gap-3">
-                                                <Link to={`/teacher/details`}>
+                                                <Link to={`/student/details`}>
                                                     <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
                                                         <img src="/view.png" width={14} height={14} />
                                                     </button>
-
-                                                    <button className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200">
-                                                        <img src="/delete.png" width={14} height={14} />
-                                                    </button>
                                                 </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(row.id)}
+                                                    className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200"
+                                                >
+                                                    <img src="/delete.png" width={14} height={14} />
+                                                </button>
                                             </div>
                                         </td>
                                     );
@@ -132,6 +150,13 @@ export function Table({ data, columns }) {
                             })}
                         </tr>
                     ))}
+                    {rows.length === 0 && (
+                        <tr>
+                            <td colSpan={columns.length} className="p-4 text-center text-sm text-gray-500">
+                                No records found.
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
         </div>
