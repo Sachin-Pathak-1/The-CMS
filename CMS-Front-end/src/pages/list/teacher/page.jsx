@@ -112,7 +112,7 @@ export function TeacherListPage () {
                     return (
                         <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
                             <div className="flex justify-center gap-3">
-                                <Link to="/teacher/details">
+                                <Link to={`/teacher/details/${row.id}`} state={{ teacher: row }}>
                                     <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
                                         <img src="/view.png" width={14} height={14} />
                                     </button>

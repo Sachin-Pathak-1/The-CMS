@@ -39,8 +39,8 @@ function App() {
       <Route path="/list/results" element={<ResultsListPage />} />
       <Route path="/list/events" element={<EventsListPage />} />
       <Route path="/list/announcements" element={<AnnouncemetnsListPage />} />
-      <Route path="/teacher/details" element={<TeacherDetails />} />
-      <Route path="/student/details" element={<StudentDetails />} />
+      <Route path="/teacher/details/:id" element={<TeacherDetails />} />
+      <Route path="/student/details/:id" element={<StudentDetails />} />
     </Routes>
   )
 }
