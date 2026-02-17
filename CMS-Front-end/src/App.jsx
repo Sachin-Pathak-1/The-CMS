@@ -17,6 +17,7 @@ import { ResultsListPage } from './pages/list/results/page.jsx';
 import { EventsListPage } from './pages/list/events/page.jsx';
 import { AnnouncemetnsListPage } from './pages/list/announcements/page.jsx';
 import { TeacherDetails } from './pages/list/teacher/TeacherDetails.jsx';
+import { StudentDetails } from './pages/student/StudentDetails.jsx';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
       <Route path="/list/events" element={<EventsListPage />} />
       <Route path="/list/announcements" element={<AnnouncemetnsListPage />} />
       <Route path="/teacher/details" element={<TeacherDetails />} />
+      <Route path="/student/details" element={<StudentDetails />} />
     </Routes>
   )
 }
