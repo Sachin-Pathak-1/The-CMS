@@ -2,6 +2,7 @@ import { Announcements } from "../../components/Announcements";
 import { EventCalender } from "../../components/EventCalender";
 import { BigCalendar } from "../../components/BigCalendar";
 import { Layout } from "../Layout";
+import { ProfileCard } from "../../components/Others/profilecard";
 
 export function StudentPage() {
     return(
@@ -17,6 +18,7 @@ export function StudentPage() {
                 {/* RIGHT SIDE */}
                 <div className="w-full lg:w-1/3 flex flex-col gap-4 h-[95%] overflow-y-auto overscroll-contain">
                     {/* EVENT CALENDER  */}
+                    <ProfileCard />
                     <EventCalender />
                     <Announcements />
                 </div>
