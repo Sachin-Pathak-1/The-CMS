@@ -13,7 +13,8 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }) => {
     const [isDarkMode, setIsDarkMode] = useState(() => {
         const saved = localStorage.getItem('Bbrains-dark-mode');
-        return saved ? JSON.parse(saved) : false;
+        if (saved !== null) return JSON.parse(saved);
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
     });
 
     const [isDarkModeUnlocked, setIsDarkModeUnlocked] = useState(() => {
@@ -45,6 +46,11 @@ export const ThemeProvider = ({ children }) => {
     // Persist to localStorage whenever values change
     useEffect(() => {
         localStorage.setItem('Bbrains-dark-mode', JSON.stringify(isDarkMode));
+    }, [isDarkMode]);
+
+    useEffect(() => {
+        const theme = isDarkMode ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
     }, [isDarkMode]);
 
     useEffect(() => {

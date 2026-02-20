@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
@@ -6,6 +7,7 @@ import { assignmentsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function AssignmentsListPage () {
+    const [assignments, setAssignments] = useState(assignmentsData);
 
 
     const columns = [
@@ -35,6 +37,46 @@ export function AssignmentsListPage () {
         },
     ]
 
+    const handleDeleteAssignment = (assignmentId) => {
+        setAssignments((prev) => prev.filter((assignment) => assignment.id !== assignmentId));
+    };
+
+    const renderAssignmentRow = (row, rowIndex) => (
+        <tr
+            key={row.id}
+            className={`border-t hover:bg-gray-50 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+        >
+            {columns.map((col) => {
+                if (col.accessor === "action") {
+                    return (
+                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                            <div className="flex justify-center gap-3">
+                                <Link to="/">
+                                    <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                        <img src="/view.png" width={14} height={14} />
+                                    </button>
+                                </Link>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeleteAssignment(row.id)}
+                                    className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200"
+                                >
+                                    <img src="/delete.png" width={14} height={14} />
+                                </button>
+                            </div>
+                        </td>
+                    );
+                }
+
+                return (
+                    <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        {row[col.accessor]}
+                    </td>
+                );
+            })}
+        </tr>
+    );
+
     return(
         <Layout>
             <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -57,7 +99,7 @@ export function AssignmentsListPage () {
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={assignmentsData} />
+                <Table columns={columns} data={assignments} onDelete={handleDeleteAssignment} renderRow={renderAssignmentRow} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
@@ -6,6 +7,7 @@ import { subjectsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function SubjectListPage () {
+    const [subjects, setSubjects] = useState(subjectsData);
 
 
     const columns = [
@@ -23,6 +25,47 @@ export function SubjectListPage () {
             accessor:"action",   
         },
     ]
+
+    const handleDeleteSubject = (subjectId) => {
+        setSubjects((prev) => prev.filter((subject) => subject.id !== subjectId));
+    };
+
+    const renderSubjectRow = (row, rowIndex) => (
+        <tr
+            key={row.id}
+            className={`border-t hover:bg-gray-50 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+        >
+            {columns.map((col) => {
+                if (col.accessor === "action") {
+                    return (
+                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                            <div className="flex justify-center gap-3">
+                                <Link to="/">
+                                    <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                        <img src="/view.png" width={14} height={14} />
+                                    </button>
+                                </Link>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeleteSubject(row.id)}
+                                    className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200"
+                                >
+                                    <img src="/delete.png" width={14} height={14} />
+                                </button>
+                            </div>
+                        </td>
+                    );
+                }
+
+                const value = row[col.accessor];
+                return (
+                    <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        {Array.isArray(value) ? value.join(", ") : value}
+                    </td>
+                );
+            })}
+        </tr>
+    );
 
     return(
         <Layout>
@@ -46,7 +89,7 @@ export function SubjectListPage () {
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={subjectsData} />
+                <Table columns={columns} data={subjects} onDelete={handleDeleteSubject} renderRow={renderSubjectRow} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>

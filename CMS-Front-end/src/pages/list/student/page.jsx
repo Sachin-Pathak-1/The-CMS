@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
@@ -6,6 +7,7 @@ import { studentsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function StudentListPage () {
+    const [students, setStudents] = useState(studentsData);
 
 
     const columns = [
@@ -39,6 +41,73 @@ export function StudentListPage () {
         },
     ]
 
+    const handleDeleteStudent = (studentId) => {
+        setStudents((prev) => prev.filter((student) => student.id !== studentId));
+    };
+
+    const getInitials = (name) =>
+        name
+            .split(" ")
+            .map((word) => word[0])
+            .join("")
+            .toUpperCase();
+
+    const renderStudentRow = (row, rowIndex) => (
+        <tr
+            key={row.id}
+            className={`border-t hover:bg-gray-50 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+        >
+            {columns.map((col) => {
+                if (col.accessor === "info") {
+                    return (
+                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                            <div className="flex items-center gap-3">
+                                {row.photo ? (
+                                    <img src={row.photo} alt={row.name} className="w-10 h-10 rounded-full object-cover" />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                                        {getInitials(row.name)}
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="font-medium">{row.name}</p>
+                                    <p className="text-xs text-gray-500">{row.email}</p>
+                                </div>
+                            </div>
+                        </td>
+                    );
+                }
+
+                if (col.accessor === "action") {
+                    return (
+                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                            <div className="flex justify-center gap-3">
+                                <Link to={`/student/details/${row.id}`} state={{ student: row }}>
+                                    <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                        <img src="/view.png" width={14} height={14} />
+                                    </button>
+                                </Link>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDeleteStudent(row.id)}
+                                    className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200"
+                                >
+                                    <img src="/delete.png" width={14} height={14} />
+                                </button>
+                            </div>
+                        </td>
+                    );
+                }
+
+                return (
+                    <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        {row[col.accessor]}
+                    </td>
+                );
+            })}
+        </tr>
+    );
+
     return(
         <Layout>
             <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -61,7 +130,7 @@ export function StudentListPage () {
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={studentsData} />
+                <Table columns={columns} data={students} onDelete={handleDeleteStudent} renderRow={renderStudentRow} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>
