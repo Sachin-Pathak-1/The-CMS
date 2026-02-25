@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
+import { FilterModal } from "../../../components/FilterModal";
 import { lessonsData } from "../../../lib/data";
+import { getVisibleRows } from "../../../lib/listUtils";
 import { Layout } from "../../Layout";
 
 export function LessonsListPage () {
     const [lessons, setLessons] = useState(lessonsData);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filterQuery, setFilterQuery] = useState("");
+    const [sortDirection, setSortDirection] = useState("none");
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editingLessonId, setEditingLessonId] = useState(null);
     const [editForm, setEditForm] = useState({ subject: "", class: "", teacher: "" });
@@ -98,6 +103,19 @@ export function LessonsListPage () {
         closeEditModal();
     };
 
+    const handleFilterClick = () => {
+        setIsFilterModalOpen(true);
+    };
+
+    const handleSortClick = () => {
+        setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
+    };
+
+    const handleApplyFilter = (nextQuery) => {
+        setFilterQuery(nextQuery);
+        setIsFilterModalOpen(false);
+    };
+
     const renderLessonRow = (row, rowIndex) => (
         <tr
             key={row.id}
@@ -136,6 +154,11 @@ export function LessonsListPage () {
         </tr>
     );
 
+    const visibleLessons = useMemo(
+        () => getVisibleRows(lessons, { query: filterQuery, sortAccessor: "subject", sortDirection }),
+        [lessons, filterQuery, sortDirection]
+    );
+
     return(
         <Layout>
             <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -145,10 +168,20 @@ export function LessonsListPage () {
                     <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto ">
                         <TableSearch />
                         <div className="flex items-center gap-4 self-end">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleFilterClick}
+                                title="Filter lessons"
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/filter.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleSortClick}
+                                title={`Sort by subject (${sortDirection})`}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
                             <button
@@ -162,7 +195,7 @@ export function LessonsListPage () {
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={lessons} onDelete={handleDeleteLesson} renderRow={renderLessonRow} />
+                <Table columns={columns} data={visibleLessons} onDelete={handleDeleteLesson} renderRow={renderLessonRow} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>
@@ -173,6 +206,13 @@ export function LessonsListPage () {
                 title="Add Lesson"
                 submitLabel="Add Lesson"
                 fields={addLessonFields}
+            />
+            <FilterModal
+                open={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={handleApplyFilter}
+                initialValue={filterQuery}
+                title="Filter Lessons"
             />
             {isEditOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">

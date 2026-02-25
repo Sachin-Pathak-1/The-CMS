@@ -915,6 +915,89 @@ export const announcementsData = [
   },
 ];
 
+export const attendanceData = [
+  {
+    id: 1,
+    student: "John Doe",
+    class: "1A",
+    date: "2026-02-22",
+    status: "Present",
+    checkIn: "08:05",
+  },
+  {
+    id: 2,
+    student: "Jane Doe",
+    class: "1A",
+    date: "2026-02-22",
+    status: "Late",
+    checkIn: "08:24",
+  },
+  {
+    id: 3,
+    student: "Mike Geller",
+    class: "2B",
+    date: "2026-02-22",
+    status: "Absent",
+    checkIn: "-",
+  },
+  {
+    id: 4,
+    student: "Jay French",
+    class: "3C",
+    date: "2026-02-22",
+    status: "Present",
+    checkIn: "07:58",
+  },
+  {
+    id: 5,
+    student: "Jane Smith",
+    class: "4A",
+    date: "2026-02-22",
+    status: "Present",
+    checkIn: "08:01",
+  },
+  {
+    id: 6,
+    student: "Anna Santiago",
+    class: "5A",
+    date: "2026-02-22",
+    status: "Late",
+    checkIn: "08:17",
+  },
+  {
+    id: 7,
+    student: "Allen Black",
+    class: "5B",
+    date: "2026-02-22",
+    status: "Present",
+    checkIn: "08:03",
+  },
+  {
+    id: 8,
+    student: "Ophelia Castro",
+    class: "6A",
+    date: "2026-02-22",
+    status: "Present",
+    checkIn: "08:00",
+  },
+  {
+    id: 9,
+    student: "Derek Briggs",
+    class: "6B",
+    date: "2026-02-22",
+    status: "Absent",
+    checkIn: "-",
+  },
+  {
+    id: 10,
+    student: "John Glover",
+    class: "7A",
+    date: "2026-02-22",
+    status: "Present",
+    checkIn: "08:02",
+  },
+];
+
 
 // YOU SHOULD CHANGE THE DATES OF THE EVENTS TO THE CURRENT DATE TO SEE THE EVENTS ON THE CALENDAR
 export const calendarEvents = [

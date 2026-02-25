@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
+import { FilterModal } from "../../../components/FilterModal";
 import { studentsData } from "../../../lib/data";
+import { getVisibleRows } from "../../../lib/listUtils";
 import { Layout } from "../../Layout";
 
 export function StudentListPage () {
     const [students, setStudents] = useState(studentsData);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filterQuery, setFilterQuery] = useState("");
+    const [sortDirection, setSortDirection] = useState("none");
     const addStudentFields = [
         { name: "name", placeholder: "Name" },
         { name: "email", type: "email", placeholder: "Email" },
@@ -72,6 +77,19 @@ export function StudentListPage () {
 
         setStudents((prev) => [newStudent, ...prev]);
         setIsAddModalOpen(false);
+    };
+
+    const handleFilterClick = () => {
+        setIsFilterModalOpen(true);
+    };
+
+    const handleSortClick = () => {
+        setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
+    };
+
+    const handleApplyFilter = (nextQuery) => {
+        setFilterQuery(nextQuery);
+        setIsFilterModalOpen(false);
     };
 
     const getInitials = (name) =>
@@ -137,6 +155,11 @@ export function StudentListPage () {
         </tr>
     );
 
+    const visibleStudents = useMemo(
+        () => getVisibleRows(students, { query: filterQuery, sortAccessor: "name", sortDirection }),
+        [students, filterQuery, sortDirection]
+    );
+
     return(
         <Layout>
             <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -146,10 +169,20 @@ export function StudentListPage () {
                     <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto ">
                         <TableSearch />
                         <div className="flex items-center gap-4 self-end">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleFilterClick}
+                                title="Filter students"
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/filter.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleSortClick}
+                                title={`Sort by name (${sortDirection})`}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
                             <button
@@ -163,7 +196,7 @@ export function StudentListPage () {
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={students} onDelete={handleDeleteStudent} renderRow={renderStudentRow} />
+                <Table columns={columns} data={visibleStudents} onDelete={handleDeleteStudent} renderRow={renderStudentRow} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>
@@ -174,6 +207,13 @@ export function StudentListPage () {
                 title="Add Student"
                 submitLabel="Add Student"
                 fields={addStudentFields}
+            />
+            <FilterModal
+                open={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={handleApplyFilter}
+                initialValue={filterQuery}
+                title="Filter Students"
             />
         </Layout>
     );

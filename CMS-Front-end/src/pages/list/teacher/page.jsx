@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
+import { FilterModal } from "../../../components/FilterModal";
 import { teachersData } from "../../../lib/data";
+import { getVisibleRows } from "../../../lib/listUtils";
 import { Layout } from "../../Layout";
 
 export function TeacherListPage () {
     const [teachers, setTeachers] = useState(teachersData);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filterQuery, setFilterQuery] = useState("");
+    const [sortDirection, setSortDirection] = useState("none");
     const addTeacherFields = [
         { name: "name", placeholder: "Name" },
         { name: "email", type: "email", placeholder: "Email" },
@@ -85,6 +90,19 @@ export function TeacherListPage () {
         setTeachers((prev) => prev.filter((teacher) => teacher.id !== teacherId));
     };
 
+    const handleFilterClick = () => {
+        setIsFilterModalOpen(true);
+    };
+
+    const handleSortClick = () => {
+        setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
+    };
+
+    const handleApplyFilter = (nextQuery) => {
+        setFilterQuery(nextQuery);
+        setIsFilterModalOpen(false);
+    };
+
     const getInitials = (name) =>
         name
             .split(" ")
@@ -148,6 +166,11 @@ export function TeacherListPage () {
             })}
         </tr>
     );
+
+    const visibleTeachers = useMemo(
+        () => getVisibleRows(teachers, { query: filterQuery, sortAccessor: "name", sortDirection }),
+        [teachers, filterQuery, sortDirection]
+    );
     
     return(
         <Layout>
@@ -158,10 +181,20 @@ export function TeacherListPage () {
                     <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto ">
                         <TableSearch />
                         <div className="flex items-center gap-4 self-end">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleFilterClick}
+                                title="Filter teachers"
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/filter.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleSortClick}
+                                title={`Sort by name (${sortDirection})`}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
                             <button
@@ -177,7 +210,7 @@ export function TeacherListPage () {
                 {/* LIST */}
                 <Table
                     columns={columns}
-                    data={teachers}
+                    data={visibleTeachers}
                     onDelete={handleDeleteTeacher}
                     renderRow={renderTeacherRow}
                 />
@@ -191,6 +224,13 @@ export function TeacherListPage () {
                 title="Add Teacher"
                 submitLabel="Add Teacher"
                 fields={addTeacherFields}
+            />
+            <FilterModal
+                open={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={handleApplyFilter}
+                initialValue={filterQuery}
+                title="Filter Teachers"
             />
         </Layout>
     );

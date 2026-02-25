@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
+import { FilterModal } from "../../../components/FilterModal";
 import { examsData } from "../../../lib/data";
+import { getVisibleRows } from "../../../lib/listUtils";
 import { Layout } from "../../Layout";
 
 export function ExamsListPage () {
     const [exams, setExams] = useState(examsData);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filterQuery, setFilterQuery] = useState("");
+    const [sortDirection, setSortDirection] = useState("none");
     const addExamFields = [
         { name: "subject", placeholder: "Subject" },
         { name: "class", placeholder: "Class" },
@@ -62,6 +67,19 @@ export function ExamsListPage () {
         setIsAddModalOpen(false);
     };
 
+    const handleFilterClick = () => {
+        setIsFilterModalOpen(true);
+    };
+
+    const handleSortClick = () => {
+        setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
+    };
+
+    const handleApplyFilter = (nextQuery) => {
+        setFilterQuery(nextQuery);
+        setIsFilterModalOpen(false);
+    };
+
     const renderExamRow = (row, rowIndex) => (
         <tr
             key={row.id}
@@ -98,6 +116,11 @@ export function ExamsListPage () {
         </tr>
     );
 
+    const visibleExams = useMemo(
+        () => getVisibleRows(exams, { query: filterQuery, sortAccessor: "subject", sortDirection }),
+        [exams, filterQuery, sortDirection]
+    );
+
     return(
         <Layout>
             <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -107,10 +130,20 @@ export function ExamsListPage () {
                     <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto ">
                         <TableSearch />
                         <div className="flex items-center gap-4 self-end">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleFilterClick}
+                                title="Filter exams"
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/filter.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleSortClick}
+                                title={`Sort by subject (${sortDirection})`}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
                             <button
@@ -124,7 +157,7 @@ export function ExamsListPage () {
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={exams} onDelete={handleDeleteExam} renderRow={renderExamRow} />
+                <Table columns={columns} data={visibleExams} onDelete={handleDeleteExam} renderRow={renderExamRow} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>
@@ -135,6 +168,13 @@ export function ExamsListPage () {
                 title="Add Exam"
                 submitLabel="Add Exam"
                 fields={addExamFields}
+            />
+            <FilterModal
+                open={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={handleApplyFilter}
+                initialValue={filterQuery}
+                title="Filter Exams"
             />
         </Layout>
     );

@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
+import { FilterModal } from "../../../components/FilterModal";
 import { eventsData } from "../../../lib/data";
+import { getVisibleRows } from "../../../lib/listUtils";
 import { Layout } from "../../Layout";
 
 export function EventsListPage () {
     const [events, setEvents] = useState(eventsData);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    const [filterQuery, setFilterQuery] = useState("");
+    const [sortDirection, setSortDirection] = useState("none");
     const addEventFields = [
         { name: "title", placeholder: "Title" },
         { name: "class", placeholder: "Class" },
@@ -69,6 +74,19 @@ export function EventsListPage () {
         setIsAddModalOpen(false);
     };
 
+    const handleFilterClick = () => {
+        setIsFilterModalOpen(true);
+    };
+
+    const handleSortClick = () => {
+        setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
+    };
+
+    const handleApplyFilter = (nextQuery) => {
+        setFilterQuery(nextQuery);
+        setIsFilterModalOpen(false);
+    };
+
     const renderEventRow = (row, rowIndex) => (
         <tr
             key={row.id}
@@ -105,6 +123,11 @@ export function EventsListPage () {
         </tr>
     );
 
+    const visibleEvents = useMemo(
+        () => getVisibleRows(events, { query: filterQuery, sortAccessor: "title", sortDirection }),
+        [events, filterQuery, sortDirection]
+    );
+
     return(
         <Layout>
             <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -114,10 +137,20 @@ export function EventsListPage () {
                     <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto ">
                         <TableSearch />
                         <div className="flex items-center gap-4 self-end">
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleFilterClick}
+                                title="Filter events"
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/filter.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={handleSortClick}
+                                title={`Sort by title (${sortDirection})`}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
                             <button
@@ -131,7 +164,7 @@ export function EventsListPage () {
                     </div>
                 </div>
                 {/* LIST */}
-                <Table columns={columns} data={events} onDelete={handleDeleteEvent} renderRow={renderEventRow} />
+                <Table columns={columns} data={visibleEvents} onDelete={handleDeleteEvent} renderRow={renderEventRow} />
                 {/* PAGINATION */}
                 <Pagination />
             </div>
@@ -142,6 +175,13 @@ export function EventsListPage () {
                 title="Add Event"
                 submitLabel="Add Event"
                 fields={addEventFields}
+            />
+            <FilterModal
+                open={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={handleApplyFilter}
+                initialValue={filterQuery}
+                title="Filter Events"
             />
         </Layout>
     );

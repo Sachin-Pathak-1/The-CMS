@@ -14,10 +14,13 @@ import { LessonsListPage } from './pages/list/lessons/page.jsx';
 import { ExamsListPage } from './pages/list/exams/page.jsx';
 import { AssignmentsListPage } from './pages/list/assignments/page.jsx';
 import { ResultsListPage } from './pages/list/results/page.jsx';
+import { AttendanceListPage } from './pages/list/attendance/page.jsx';
 import { EventsListPage } from './pages/list/events/page.jsx';
 import { AnnouncemetnsListPage } from './pages/list/announcements/page.jsx';
 import { TeacherDetails } from './pages/list/teacher/TeacherDetails.jsx';
 import { StudentDetails } from './pages/student/StudentDetails.jsx';
+import { ProfilePage } from './pages/profile/ProfilePage.jsx';
+import { SettingsPage } from './pages/settings/SettingsPage.jsx';
 
 function App() {
   return (
@@ -37,8 +40,11 @@ function App() {
       <Route path="/list/exams" element={<ExamsListPage />} />
       <Route path="/list/assignments" element={<AssignmentsListPage />} />
       <Route path="/list/results" element={<ResultsListPage />} />
+      <Route path="/list/attendance" element={<AttendanceListPage />} />
       <Route path="/list/events" element={<EventsListPage />} />
       <Route path="/list/announcements" element={<AnnouncemetnsListPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/settings" element={<SettingsPage />} />
       <Route path="/teacher/details/:id" element={<TeacherDetails />} />
       <Route path="/student/details/:id" element={<StudentDetails />} />
     </Routes>
