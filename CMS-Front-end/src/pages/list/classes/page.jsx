@@ -3,11 +3,19 @@ import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { classesData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function ClassesListPage () {
     const [classes, setClasses] = useState(classesData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addClassFields = [
+        { name: "name", placeholder: "Class Name" },
+        { name: "capacity", type: "number", placeholder: "Capacity" },
+        { name: "grade", type: "number", placeholder: "Grade" },
+        { name: "supervisor", placeholder: "Supervisor", fullWidth: true },
+    ];
 
 
     const columns = [
@@ -39,6 +47,19 @@ export function ClassesListPage () {
 
     const handleDeleteClass = (classId) => {
         setClasses((prev) => prev.filter((classItem) => classItem.id !== classId));
+    };
+
+    const handleAddClass = (formData) => {
+        const newClass = {
+            id: classes.length ? Math.max(...classes.map((c) => c.id)) + 1 : 1,
+            name: formData.name.trim(),
+            capacity: Number(formData.capacity),
+            grade: Number(formData.grade),
+            supervisor: formData.supervisor.trim(),
+        };
+
+        setClasses((prev) => [newClass, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const renderClassRow = (row, rowIndex) => (
@@ -92,7 +113,11 @@ export function ClassesListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -103,6 +128,14 @@ export function ClassesListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddClass}
+                title="Add Class"
+                submitLabel="Add Class"
+                fields={addClassFields}
+            />
         </Layout>
     );
 }

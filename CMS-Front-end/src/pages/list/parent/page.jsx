@@ -3,11 +3,20 @@ import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { parentsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function ParentListPage () {
     const [parents, setParents] = useState(parentsData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addParentFields = [
+        { name: "name", placeholder: "Name" },
+        { name: "email", type: "email", placeholder: "Email" },
+        { name: "students", placeholder: "Student Names (comma separated)" },
+        { name: "phone", placeholder: "Phone" },
+        { name: "address", placeholder: "Address", fullWidth: true },
+    ];
 
 
     const columns = [
@@ -38,6 +47,20 @@ export function ParentListPage () {
 
     const handleDeleteParent = (parentId) => {
         setParents((prev) => prev.filter((parent) => parent.id !== parentId));
+    };
+
+    const handleAddParent = (formData) => {
+        const newParent = {
+            id: parents.length ? Math.max(...parents.map((p) => p.id)) + 1 : 1,
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            students: formData.students.split(",").map((name) => name.trim()).filter(Boolean),
+            phone: formData.phone.trim(),
+            address: formData.address.trim(),
+        };
+
+        setParents((prev) => [newParent, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const getInitials = (name) =>
@@ -115,7 +138,11 @@ export function ParentListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -126,6 +153,14 @@ export function ParentListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddParent}
+                title="Add Parent"
+                submitLabel="Add Parent"
+                fields={addParentFields}
+            />
         </Layout>
     );
 }

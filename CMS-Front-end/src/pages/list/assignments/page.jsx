@@ -3,11 +3,19 @@ import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { assignmentsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function AssignmentsListPage () {
     const [assignments, setAssignments] = useState(assignmentsData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addAssignmentFields = [
+        { name: "subject", placeholder: "Subject" },
+        { name: "class", placeholder: "Class" },
+        { name: "teacher", placeholder: "Teacher" },
+        { name: "dueDate", type: "date", placeholder: "Due Date" },
+    ];
 
 
     const columns = [
@@ -39,6 +47,19 @@ export function AssignmentsListPage () {
 
     const handleDeleteAssignment = (assignmentId) => {
         setAssignments((prev) => prev.filter((assignment) => assignment.id !== assignmentId));
+    };
+
+    const handleAddAssignment = (formData) => {
+        const newAssignment = {
+            id: assignments.length ? Math.max(...assignments.map((a) => a.id)) + 1 : 1,
+            subject: formData.subject.trim(),
+            class: formData.class.trim(),
+            teacher: formData.teacher.trim(),
+            dueDate: formData.dueDate,
+        };
+
+        setAssignments((prev) => [newAssignment, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const renderAssignmentRow = (row, rowIndex) => (
@@ -92,7 +113,11 @@ export function AssignmentsListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -103,6 +128,14 @@ export function AssignmentsListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddAssignment}
+                title="Add Assignment"
+                submitLabel="Add Assignment"
+                fields={addAssignmentFields}
+            />
         </Layout>
     );
 }

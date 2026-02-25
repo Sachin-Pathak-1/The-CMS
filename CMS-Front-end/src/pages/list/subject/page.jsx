@@ -3,11 +3,17 @@ import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { subjectsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function SubjectListPage () {
     const [subjects, setSubjects] = useState(subjectsData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addSubjectFields = [
+        { name: "name", placeholder: "Subject Name" },
+        { name: "teachers", placeholder: "Teachers (comma separated)", fullWidth: true },
+    ];
 
 
     const columns = [
@@ -28,6 +34,17 @@ export function SubjectListPage () {
 
     const handleDeleteSubject = (subjectId) => {
         setSubjects((prev) => prev.filter((subject) => subject.id !== subjectId));
+    };
+
+    const handleAddSubject = (formData) => {
+        const newSubject = {
+            id: subjects.length ? Math.max(...subjects.map((s) => s.id)) + 1 : 1,
+            name: formData.name.trim(),
+            teachers: formData.teachers.split(",").map((teacher) => teacher.trim()).filter(Boolean),
+        };
+
+        setSubjects((prev) => [newSubject, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const renderSubjectRow = (row, rowIndex) => (
@@ -82,7 +99,11 @@ export function SubjectListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -93,6 +114,14 @@ export function SubjectListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddSubject}
+                title="Add Subject"
+                submitLabel="Add Subject"
+                fields={addSubjectFields}
+            />
         </Layout>
     );
 }

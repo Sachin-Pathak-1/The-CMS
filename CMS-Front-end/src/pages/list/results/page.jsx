@@ -3,11 +3,21 @@ import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { resultsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function ResultsListPage () {
     const [results, setResults] = useState(resultsData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addResultFields = [
+        { name: "subject", placeholder: "Subject" },
+        { name: "student", placeholder: "Student" },
+        { name: "score", type: "number", placeholder: "Score" },
+        { name: "teacher", placeholder: "Teacher" },
+        { name: "class", placeholder: "Class" },
+        { name: "date", type: "date", placeholder: "Date" },
+    ];
 
 
     const columns = [
@@ -49,6 +59,22 @@ export function ResultsListPage () {
 
     const handleDeleteResult = (resultId) => {
         setResults((prev) => prev.filter((result) => result.id !== resultId));
+    };
+
+    const handleAddResult = (formData) => {
+        const newResult = {
+            id: results.length ? Math.max(...results.map((r) => r.id)) + 1 : 1,
+            subject: formData.subject.trim(),
+            student: formData.student.trim(),
+            score: Number(formData.score),
+            teacher: formData.teacher.trim(),
+            class: formData.class.trim(),
+            date: formData.date,
+            type: "exam",
+        };
+
+        setResults((prev) => [newResult, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const renderResultRow = (row, rowIndex) => (
@@ -102,7 +128,11 @@ export function ResultsListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -113,6 +143,14 @@ export function ResultsListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddResult}
+                title="Add Result"
+                submitLabel="Add Result"
+                fields={addResultFields}
+            />
         </Layout>
     );
 }

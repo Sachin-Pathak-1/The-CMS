@@ -3,11 +3,18 @@ import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { announcementsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function AnnouncemetnsListPage () {
     const [announcements, setAnnouncements] = useState(announcementsData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addAnnouncementFields = [
+        { name: "title", placeholder: "Title" },
+        { name: "class", placeholder: "Class" },
+        { name: "date", type: "date", placeholder: "Date" },
+    ];
 
 
     const columns = [
@@ -34,6 +41,18 @@ export function AnnouncemetnsListPage () {
 
     const handleDeleteAnnouncement = (announcementId) => {
         setAnnouncements((prev) => prev.filter((announcement) => announcement.id !== announcementId));
+    };
+
+    const handleAddAnnouncement = (formData) => {
+        const newAnnouncement = {
+            id: announcements.length ? Math.max(...announcements.map((a) => a.id)) + 1 : 1,
+            title: formData.title.trim(),
+            class: formData.class.trim(),
+            date: formData.date,
+        };
+
+        setAnnouncements((prev) => [newAnnouncement, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const renderAnnouncementRow = (row, rowIndex) => (
@@ -87,7 +106,11 @@ export function AnnouncemetnsListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -98,6 +121,14 @@ export function AnnouncemetnsListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddAnnouncement}
+                title="Add Announcement"
+                submitLabel="Add Announcement"
+                fields={addAnnouncementFields}
+            />
         </Layout>
     );
 }

@@ -3,11 +3,20 @@ import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { eventsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function EventsListPage () {
     const [events, setEvents] = useState(eventsData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addEventFields = [
+        { name: "title", placeholder: "Title" },
+        { name: "class", placeholder: "Class" },
+        { name: "date", type: "date", placeholder: "Date" },
+        { name: "startTime", type: "time", placeholder: "Start Time" },
+        { name: "endTime", type: "time", placeholder: "End Time" },
+    ];
 
 
     const columns = [
@@ -44,6 +53,20 @@ export function EventsListPage () {
 
     const handleDeleteEvent = (eventId) => {
         setEvents((prev) => prev.filter((event) => event.id !== eventId));
+    };
+
+    const handleAddEvent = (formData) => {
+        const newEvent = {
+            id: events.length ? Math.max(...events.map((e) => e.id)) + 1 : 1,
+            title: formData.title.trim(),
+            class: formData.class.trim(),
+            date: formData.date,
+            startTime: formData.startTime,
+            endTime: formData.endTime,
+        };
+
+        setEvents((prev) => [newEvent, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const renderEventRow = (row, rowIndex) => (
@@ -97,7 +120,11 @@ export function EventsListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -108,6 +135,14 @@ export function EventsListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddEvent}
+                title="Add Event"
+                submitLabel="Add Event"
+                fields={addEventFields}
+            />
         </Layout>
     );
 }

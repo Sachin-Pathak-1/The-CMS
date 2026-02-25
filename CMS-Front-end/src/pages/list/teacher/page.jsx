@@ -10,6 +10,16 @@ import { Layout } from "../../Layout";
 export function TeacherListPage () {
     const [teachers, setTeachers] = useState(teachersData);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addTeacherFields = [
+        { name: "name", placeholder: "Name" },
+        { name: "email", type: "email", placeholder: "Email" },
+        { name: "teacherId", placeholder: "Teacher ID" },
+        { name: "phone", placeholder: "Phone" },
+        { name: "subjects", placeholder: "Subjects (comma separated)" },
+        { name: "classes", placeholder: "Classes (comma separated)" },
+        { name: "photo", placeholder: "Photo URL (optional)", required: false, fullWidth: true },
+        { name: "address", placeholder: "Address", fullWidth: true },
+    ];
 
 
     const columns = [
@@ -178,6 +188,9 @@ export function TeacherListPage () {
                 open={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSubmit={handleAddTeacher}
+                title="Add Teacher"
+                submitLabel="Add Teacher"
+                fields={addTeacherFields}
             />
         </Layout>
     );

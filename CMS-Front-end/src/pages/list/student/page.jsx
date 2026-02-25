@@ -3,11 +3,23 @@ import { Link } from "react-router-dom";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { studentsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function StudentListPage () {
     const [students, setStudents] = useState(studentsData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const addStudentFields = [
+        { name: "name", placeholder: "Name" },
+        { name: "email", type: "email", placeholder: "Email" },
+        { name: "studentId", placeholder: "Student ID" },
+        { name: "grade", type: "number", placeholder: "Grade" },
+        { name: "class", placeholder: "Class" },
+        { name: "phone", placeholder: "Phone" },
+        { name: "photo", placeholder: "Photo URL (optional)", required: false, fullWidth: true },
+        { name: "address", placeholder: "Address", fullWidth: true },
+    ];
 
 
     const columns = [
@@ -43,6 +55,23 @@ export function StudentListPage () {
 
     const handleDeleteStudent = (studentId) => {
         setStudents((prev) => prev.filter((student) => student.id !== studentId));
+    };
+
+    const handleAddStudent = (formData) => {
+        const newStudent = {
+            id: students.length ? Math.max(...students.map((s) => s.id)) + 1 : 1,
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            studentId: formData.studentId.trim(),
+            grade: Number(formData.grade),
+            class: formData.class.trim(),
+            phone: formData.phone.trim(),
+            address: formData.address.trim(),
+            photo: formData.photo.trim(),
+        };
+
+        setStudents((prev) => [newStudent, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const getInitials = (name) =>
@@ -123,7 +152,11 @@ export function StudentListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -134,6 +167,14 @@ export function StudentListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddStudent}
+                title="Add Student"
+                submitLabel="Add Student"
+                fields={addStudentFields}
+            />
         </Layout>
     );
 }

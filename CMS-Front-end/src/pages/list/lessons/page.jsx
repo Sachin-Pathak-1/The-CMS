@@ -2,14 +2,21 @@ import { useState } from "react";
 import { Pagination } from "../../../components/Pagination";
 import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
+import { FormModel } from "../../../components/FormModel";
 import { lessonsData } from "../../../lib/data";
 import { Layout } from "../../Layout";
 
 export function LessonsListPage () {
     const [lessons, setLessons] = useState(lessonsData);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editingLessonId, setEditingLessonId] = useState(null);
     const [editForm, setEditForm] = useState({ subject: "", class: "", teacher: "" });
+    const addLessonFields = [
+        { name: "subject", placeholder: "Subject" },
+        { name: "class", placeholder: "Class" },
+        { name: "teacher", placeholder: "Teacher" },
+    ];
 
 
     const columns = [
@@ -36,6 +43,18 @@ export function LessonsListPage () {
 
     const handleDeleteLesson = (lessonId) => {
         setLessons((prev) => prev.filter((lesson) => lesson.id !== lessonId));
+    };
+
+    const handleAddLesson = (formData) => {
+        const newLesson = {
+            id: lessons.length ? Math.max(...lessons.map((l) => l.id)) + 1 : 1,
+            subject: formData.subject.trim(),
+            class: formData.class.trim(),
+            teacher: formData.teacher.trim(),
+        };
+
+        setLessons((prev) => [newLesson, ...prev]);
+        setIsAddModalOpen(false);
     };
 
     const openEditModal = (lesson) => {
@@ -132,7 +151,11 @@ export function LessonsListPage () {
                             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 ">
+                            <button
+                                type="button"
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                            >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
@@ -143,6 +166,14 @@ export function LessonsListPage () {
                 {/* PAGINATION */}
                 <Pagination />
             </div>
+            <FormModel
+                open={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSubmit={handleAddLesson}
+                title="Add Lesson"
+                submitLabel="Add Lesson"
+                fields={addLessonFields}
+            />
             {isEditOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
                     <div className="w-full max-w-md rounded-xl bg-white p-5">
