@@ -4,12 +4,12 @@ import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
-import { attendanceData } from "../../../lib/data";
 import { getVisibleRows } from "../../../lib/listUtils";
+import { useBackendList } from "../../../hooks/useBackendList";
 import { Layout } from "../../Layout";
 
 export function AttendanceListPage() {
-    const [attendance, setAttendance] = useState(attendanceData);
+    const { data: attendance, setData: setAttendance, loading, error } = useBackendList("attendance");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filterQuery, setFilterQuery] = useState("");
@@ -157,6 +157,8 @@ export function AttendanceListPage() {
                         </div>
                     </div>
                 </div>
+                {loading && <p className="mb-3 text-sm text-gray-500">Loading attendance...</p>}
+                {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
 
                 <Table
                     columns={columns}
