@@ -1,4 +1,5 @@
 import prisma from "../utils/prisma.js";
+import bcrypt from "bcrypt";
 
 const getAllProducts = async (skip = 0, take = 10) => {
     const [products, total] = await prisma.$transaction([
@@ -96,7 +97,8 @@ const getCart = async (userId) => {
                     name: true,
                     description: true,
                     image: true,
-                    price: true
+                    price: true,
+                    category: true
                 }
             }
         }
@@ -125,7 +127,15 @@ const checkout = async (userId, pin) => {
         });
 
         if (!wallet) throw new Error("Wallet not configured");
-        if (wallet.pin !== pin) throw new Error("Invalid Wallet PIN");
+
+        let pinMatch = false;
+        if (wallet.pin.length > 6) {
+            pinMatch = await bcrypt.compare(pin, wallet.pin);
+        } else {
+            pinMatch = wallet.pin === pin;
+        }
+
+        if (!pinMatch) throw new Error("Invalid Wallet PIN");
 
         // 2. Get Cart Items
         const cartItems = await tx.cart.findMany({
@@ -160,7 +170,7 @@ const checkout = async (userId, pin) => {
             data: {
                 userId,
                 totalAmount,
-                status: 'completed',
+                status: 'pending',
                 items: {
                     create: cartItems.map(item => ({
                         productId: item.productId,
@@ -204,7 +214,23 @@ const checkout = async (userId, pin) => {
             }
         });
 
-        return order;
+        return await tx.order.findUnique({
+            where: { id: order.id },
+            include: {
+                items: {
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true,
+                                price: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
     });
 };
 
