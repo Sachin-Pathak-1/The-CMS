@@ -21,32 +21,47 @@ import { TeacherDetails } from './pages/list/teacher/TeacherDetails.jsx';
 import { StudentDetails } from './pages/student/StudentDetails.jsx';
 import { ProfilePage } from './pages/profile/ProfilePage.jsx';
 import { SettingsPage } from './pages/settings/SettingsPage.jsx';
+import { StorePage } from './pages/store/StorePage.jsx';
+import { WalletPage } from './pages/wallet/WalletPage.jsx';
+import { OrderPage } from './pages/order/OrderPage.jsx';
+import { OrdersPage } from './pages/orders/OrdersPage.jsx';
+import { LoginPage } from './pages/auth/LoginPage.jsx';
+import { ChatPage } from './pages/chat/ChatPage.jsx';
+import { AssignmentDetailsPage } from './pages/assignments/AssignmentDetailsPage.jsx';
+import { ProtectedRoute } from './components/Auth/ProtectedRoute.jsx';
 
 function App() {
   return (
 
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
       <Route path="/features" element={<FeaturesPage />} />
-      <Route path="/admin" element={<AdminPage />} />
-      <Route path="/teacher" element={<TeacherPage />} />
-      <Route path="/student" element={<StudentPage />} />
-      <Route path="/list/teachers" element={<TeacherListPage />} />
-      <Route path="/list/students" element={<StudentListPage />} />
-      <Route path="/list/parents" element={<ParentListPage />} />
-      <Route path="/list/subjects" element={<SubjectListPage />} />
-      <Route path="/list/classes" element={<ClassesListPage />} />
-      <Route path="/list/lessons" element={<LessonsListPage />} />
-      <Route path="/list/exams" element={<ExamsListPage />} />
-      <Route path="/list/assignments" element={<AssignmentsListPage />} />
-      <Route path="/list/results" element={<ResultsListPage />} />
-      <Route path="/list/attendance" element={<AttendanceListPage />} />
-      <Route path="/list/events" element={<EventsListPage />} />
-      <Route path="/list/announcements" element={<AnnouncemetnsListPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/teacher/details/:id" element={<TeacherDetails />} />
-      <Route path="/student/details/:id" element={<StudentDetails />} />
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminPage /></ProtectedRoute>} />
+      <Route path="/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPage /></ProtectedRoute>} />
+      <Route path="/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPage /></ProtectedRoute>} />
+      <Route path="/list/teachers" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><TeacherListPage /></ProtectedRoute>} />
+      <Route path="/list/students" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><StudentListPage /></ProtectedRoute>} />
+      <Route path="/list/parents" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><ParentListPage /></ProtectedRoute>} />
+      <Route path="/list/subjects" element={<ProtectedRoute allowedRoles={['admin']}><SubjectListPage /></ProtectedRoute>} />
+      <Route path="/list/classes" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><ClassesListPage /></ProtectedRoute>} />
+      <Route path="/list/lessons" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><LessonsListPage /></ProtectedRoute>} />
+      <Route path="/list/exams" element={<ProtectedRoute><ExamsListPage /></ProtectedRoute>} />
+      <Route path="/list/assignments" element={<ProtectedRoute><AssignmentsListPage /></ProtectedRoute>} />
+      <Route path="/assignments/:id" element={<ProtectedRoute><AssignmentDetailsPage /></ProtectedRoute>} />
+      <Route path="/list/results" element={<ProtectedRoute><ResultsListPage /></ProtectedRoute>} />
+      <Route path="/list/attendance" element={<ProtectedRoute><AttendanceListPage /></ProtectedRoute>} />
+      <Route path="/list/events" element={<ProtectedRoute><EventsListPage /></ProtectedRoute>} />
+      <Route path="/list/announcements" element={<ProtectedRoute><AnnouncemetnsListPage /></ProtectedRoute>} />
+      <Route path="/store" element={<ProtectedRoute><StorePage /></ProtectedRoute>} />
+      <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+      <Route path="/order" element={<ProtectedRoute><OrderPage /></ProtectedRoute>} />
+      <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      <Route path="/teacher/details/:id" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><TeacherDetails /></ProtectedRoute>} />
+      <Route path="/student/details/:id" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><StudentDetails /></ProtectedRoute>} />
     </Routes>
   )
 }
