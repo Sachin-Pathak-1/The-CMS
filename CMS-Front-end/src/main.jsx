@@ -5,12 +5,15 @@ import '@fontsource/inter'
 import './index.css'
 import App from './App.jsx'
 import { ThemeProvider } from './contexts/ThemeContext.jsx'
+import { AuthProvider } from './contexts/AuthContext.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,
