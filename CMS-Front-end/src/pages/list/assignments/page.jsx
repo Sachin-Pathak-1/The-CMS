@@ -5,16 +5,23 @@ import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
-import { assignmentsData } from "../../../lib/data";
 import { getVisibleRows } from "../../../lib/listUtils";
+import { useBackendList } from "../../../hooks/useBackendList";
 import { Layout } from "../../Layout";
+import { uploadFileToCloudinary } from "../../../lib/uploadClient";
+import { apiRequest } from "../../../lib/apiClient";
 
 export function AssignmentsListPage () {
-    const [assignments, setAssignments] = useState(assignmentsData);
+    const { data: assignments, setData: setAssignments, loading, error } = useBackendList("assignments");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filterQuery, setFilterQuery] = useState("");
     const [sortDirection, setSortDirection] = useState("none");
+    const [uploadTarget, setUploadTarget] = useState(null);
+    const [submissionFile, setSubmissionFile] = useState(null);
+    const [submitMessage, setSubmitMessage] = useState("");
+    const [submitError, setSubmitError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const addAssignmentFields = [
         { name: "subject", placeholder: "Subject" },
         { name: "class", placeholder: "Class" },
@@ -90,11 +97,23 @@ export function AssignmentsListPage () {
                     return (
                         <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
                             <div className="flex justify-center gap-3">
-                                <Link to="/">
+                                <Link to={`/assignments/${row.id}`}>
                                     <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
                                         <img src="/view.png" width={14} height={14} />
                                     </button>
                                 </Link>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setUploadTarget(row);
+                                        setSubmissionFile(null);
+                                        setSubmitError("");
+                                        setSubmitMessage("");
+                                    }}
+                                    className="p-2 bg-green-100 text-green-600 rounded-full hover:bg-green-200"
+                                >
+                                    <img src="/upload.png" width={14} height={14} />
+                                </button>
                                 <button
                                     type="button"
                                     onClick={() => handleDeleteAssignment(row.id)}
@@ -120,6 +139,36 @@ export function AssignmentsListPage () {
         () => getVisibleRows(assignments, { query: filterQuery, sortAccessor: "subject", sortDirection }),
         [assignments, filterQuery, sortDirection]
     );
+
+    const handleSubmitAssignment = async () => {
+        if (!uploadTarget || !submissionFile) return;
+
+        try {
+            setIsSubmitting(true);
+            setSubmitError("");
+            const upload = await uploadFileToCloudinary(submissionFile, "learnytics/assignment-submissions");
+
+            await apiRequest("/academic/submissions", {
+                method: "POST",
+                body: JSON.stringify({
+                    assignmentId: uploadTarget.id,
+                    content: submissionFile.name,
+                    fileUrl: upload?.url,
+                }),
+            });
+
+            setSubmitMessage("Assignment uploaded successfully.");
+            setSubmissionFile(null);
+            setTimeout(() => {
+                setUploadTarget(null);
+                setSubmitMessage("");
+            }, 1400);
+        } catch (err) {
+            setSubmitError(err.message || "Failed to submit assignment");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return(
         <Layout>
@@ -156,6 +205,8 @@ export function AssignmentsListPage () {
                         </div>
                     </div>
                 </div>
+                {loading && <p className="mb-3 text-sm text-gray-500">Loading assignments...</p>}
+                {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
                 {/* LIST */}
                 <Table columns={columns} data={visibleAssignments} onDelete={handleDeleteAssignment} renderRow={renderAssignmentRow} />
                 {/* PAGINATION */}
@@ -176,6 +227,44 @@ export function AssignmentsListPage () {
                 initialValue={filterQuery}
                 title="Filter Assignments"
             />
+            {uploadTarget ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <div className="w-full max-w-lg rounded-xl bg-white p-5">
+                        <div className="mb-4 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-lg font-semibold">Submit Assignment</h2>
+                                <p className="mt-1 text-sm text-gray-500">{uploadTarget.subject}</p>
+                            </div>
+                            <button type="button" onClick={() => setUploadTarget(null)} className="text-sm text-gray-500 hover:text-gray-700">
+                                Close
+                            </button>
+                        </div>
+                        <label className="block text-sm">
+                            <span className="mb-2 block text-gray-600">Choose file</span>
+                            <input
+                                type="file"
+                                onChange={(event) => setSubmissionFile(event.target.files?.[0] || null)}
+                                className="w-full rounded-md border border-gray-200 p-2"
+                            />
+                        </label>
+                        {submitError ? <p className="mt-3 text-sm text-red-500">{submitError}</p> : null}
+                        {submitMessage ? <p className="mt-3 text-sm text-green-600">{submitMessage}</p> : null}
+                        <div className="mt-4 flex justify-end gap-2">
+                            <button type="button" onClick={() => setUploadTarget(null)} className="rounded-md border border-gray-200 px-4 py-2 text-sm hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSubmitAssignment}
+                                disabled={!submissionFile || isSubmitting}
+                                className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {isSubmitting ? "Uploading..." : "Upload Assignment"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
         </Layout>
     );
 }
