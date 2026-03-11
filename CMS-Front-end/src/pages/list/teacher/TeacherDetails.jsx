@@ -1,17 +1,49 @@
+import { useEffect, useState } from "react";
 import { Layout } from "../../Layout";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { Announcements } from "../../../components/Announcements"
 import { BigCalendar } from "../../../components/BigCalendar";
 import { Performance } from "../../../components/Performance";
-import { teachersData } from "../../../lib/data";
+import { apiRequest } from "../../../lib/apiClient";
 
 export function TeacherDetails () {
     const { id } = useParams();
     const location = useLocation();
+    const [teacher, setTeacher] = useState(location.state?.teacher || null);
+    const [loading, setLoading] = useState(!location.state?.teacher);
 
-    const teacher =
-        location.state?.teacher ||
-        teachersData.find((item) => String(item.id) === String(id));
+    useEffect(() => {
+        if (location.state?.teacher) return;
+        let active = true;
+        const loadTeacher = async () => {
+            try {
+                const response = await apiRequest(`/public/details/teachers/${id}`);
+                if (active) {
+                    setTeacher(response?.data || null);
+                }
+            } catch {
+                if (active) {
+                    setTeacher(null);
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+        loadTeacher();
+        return () => {
+            active = false;
+        };
+    }, [id, location.state?.teacher]);
+
+    if (loading) {
+        return (
+            <Layout>
+                <div className="p-6 text-sm text-gray-500">Loading teacher details...</div>
+            </Layout>
+        );
+    }
 
     if (!teacher) {
         return (
