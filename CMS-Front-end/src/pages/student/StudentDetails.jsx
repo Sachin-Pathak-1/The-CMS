@@ -1,17 +1,49 @@
+import { useEffect, useState } from "react";
 import { Layout } from "../Layout";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { Announcements } from "../../components/Announcements"
 import { BigCalendar } from "../../components/BigCalendar";
 import { Performance } from "../../components/Performance";
-import { studentsData } from "../../lib/data";
+import { apiRequest } from "../../lib/apiClient";
 
 export function StudentDetails () {
     const { id } = useParams();
     const location = useLocation();
+    const [student, setStudent] = useState(location.state?.student || null);
+    const [loading, setLoading] = useState(!location.state?.student);
 
-    const student =
-        location.state?.student ||
-        studentsData.find((item) => String(item.id) === String(id));
+    useEffect(() => {
+        if (location.state?.student) return;
+        let active = true;
+        const loadStudent = async () => {
+            try {
+                const response = await apiRequest(`/public/details/students/${id}`);
+                if (active) {
+                    setStudent(response?.data || null);
+                }
+            } catch {
+                if (active) {
+                    setStudent(null);
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
+        };
+        loadStudent();
+        return () => {
+            active = false;
+        };
+    }, [id, location.state?.student]);
+
+    if (loading) {
+        return (
+            <Layout>
+                <div className="p-6 text-sm text-gray-500">Loading student details...</div>
+            </Layout>
+        );
+    }
 
     if (!student) {
         return (
