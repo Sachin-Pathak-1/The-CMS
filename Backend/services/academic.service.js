@@ -2,32 +2,31 @@ import prisma from "../utils/prisma.js";
 
 // --- Assignments ---
 
-const createAssignment = async (teacherId, courseId, data) => {
+const createAssignment = async (data) => {
     return await prisma.assignment.create({
         data: {
             title: data.title,
             description: data.description,
-            content: data.content,
-            dueDate: new Date(data.dueDate),
-            courseId: parseInt(courseId),
+            content: data.content || null,
+            dueDate: data.dueDate ? new Date(data.dueDate) : new Date(),
+            courseId: parseInt(data.courseId),
         }
     });
 };
 
 const getAssignments = async (courseId) => {
     return await prisma.assignment.findMany({
-        where: { courseId: parseInt(courseId) },
+        ...(courseId ? { where: { courseId: parseInt(courseId) } } : {}),
         orderBy: { createdAt: 'desc' }
     });
 };
 
-const submitAssignment = async (userId, assignmentId, filePath) => {
-    // Upsert to allow re-submission updates
+const submitAssignment = async (userId, data) => {
     return await prisma.submission.create({
         data: {
             userId,
-            assignmentId: parseInt(assignmentId),
-            filePath
+            assignmentId: parseInt(data.assignmentId),
+            filePath: data.fileUrl || data.content
         }
     });
 };
