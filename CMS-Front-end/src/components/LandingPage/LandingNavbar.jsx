@@ -42,7 +42,7 @@ const LandingNavbar = ({
                     )}
                 </button>
 
-                <Link to={'/admin'} className={`group flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all shadow-sm
+                <Link to={'/login'} className={`group flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border transition-all shadow-sm
               ${isDarkMode
                         ? 'bg-[#161316] border-white text-white hover:bg-white hover:text-[#161316]'
                         : 'bg-white border-slate-200 text-black hover:border-indigo-600 hover:text-indigo-600'}`}>
@@ -83,13 +83,13 @@ const LandingNavbar = ({
                                 )}
                             </div>
                         </button>
-                        <button className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold border transition-all
-                ${isDarkMode
+                        <Link to="/login" className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold border transition-all
+	                ${isDarkMode
                                 ? 'bg-[#161316] border-white text-white hover:bg-white hover:text-[#161316]'
                                 : 'bg-white border-slate-200 text-black hover:border-indigo-600 hover:text-indigo-600'}`}>
                             <DashboardIcon />
                             Go to Dashboard
-                        </button>
+                        </Link>
                     </div>
                 </div>
             )}
