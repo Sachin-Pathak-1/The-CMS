@@ -1,27 +1,56 @@
+import { useEffect, useMemo, useState } from "react";
 import { RadialBarChart, RadialBar, Legend, Tooltip } from 'recharts';
-
-// #region Sample data
-const data = [
-    {
-        name: 'Total',
-        Count: 106,
-        fill: 'white',
-    },
-    {
-        name: 'Girls',
-        Count: 53,
-        fill: '#8884d8',
-    },
-    {
-        name: 'Boys',
-        Count: 53,
-        fill: '#83a6ed',
-    },
-];
-
-// #endregion
+import { apiRequest } from "../lib/apiClient";
 
 export function CountChart() {
+    const [boys, setBoys] = useState(0);
+    const [girls, setGirls] = useState(0);
+
+    useEffect(() => {
+        let active = true;
+        const loadSummary = async () => {
+            try {
+                const response = await apiRequest("/public/summary");
+                if (!active) return;
+                const nextBoys = response?.data?.sexCounts?.boys || 0;
+                const nextGirls = response?.data?.sexCounts?.girls || 0;
+                setBoys(nextBoys);
+                setGirls(nextGirls);
+            } catch {
+                if (active) {
+                    setBoys(0);
+                    setGirls(0);
+                }
+            }
+        };
+        loadSummary();
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    const total = boys + girls;
+    const data = useMemo(() => ([
+        {
+            name: 'Total',
+            Count: total,
+            fill: 'white',
+        },
+        {
+            name: 'Girls',
+            Count: girls,
+            fill: '#8884d8',
+        },
+        {
+            name: 'Boys',
+            Count: boys,
+            fill: '#83a6ed',
+        },
+    ]), [boys, girls, total]);
+
+    const boysPct = total ? Math.round((boys / total) * 100) : 0;
+    const girlsPct = total ? 100 - boysPct : 0;
+
     return (
         <div className="bg-white rounded-xl w-full h-full p-4">
             {/* TITLE */}
@@ -49,13 +78,13 @@ export function CountChart() {
             <div className="flex gap-16 justify-center">
                 <div className="flex flex-col gap-1">
                     <div className="w-4 h-4 bg-blue-500 rounded-full" />
-                    <h1 className='font-bold'>1,254</h1>
-                    <h2 className='text-xs text-gray-500'>Boys (55%)</h2>
+                    <h1 className='font-bold'>{boys.toLocaleString()}</h1>
+                    <h2 className='text-xs text-gray-500'>Boys ({boysPct}%)</h2>
                 </div>
                 <div className="flex flex-col gap-1">
                     <div className="w-4 h-4 bg-purple-500 rounded-full" />
-                    <h1 className='font-bold'>954</h1>
-                    <h2 className='text-xs text-gray-500'>Girls (45%)</h2>
+                    <h1 className='font-bold'>{girls.toLocaleString()}</h1>
+                    <h2 className='text-xs text-gray-500'>Girls ({girlsPct}%)</h2>
                 </div>
             </div>
         </div>
