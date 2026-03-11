@@ -5,12 +5,12 @@ import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
-import { parentsData } from "../../../lib/data";
 import { getVisibleRows } from "../../../lib/listUtils";
+import { useBackendList } from "../../../hooks/useBackendList";
 import { Layout } from "../../Layout";
 
 export function ParentListPage () {
-    const [parents, setParents] = useState(parentsData);
+    const { data: parents, setData: setParents, loading, error } = useBackendList("parents");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filterQuery, setFilterQuery] = useState("");
@@ -181,6 +181,8 @@ export function ParentListPage () {
                         </div>
                     </div>
                 </div>
+                {loading && <p className="mb-3 text-sm text-gray-500">Loading parents...</p>}
+                {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
                 {/* LIST */}
                 <Table columns={columns} data={visibleParents} onDelete={handleDeleteParent} renderRow={renderParentRow} />
                 {/* PAGINATION */}
