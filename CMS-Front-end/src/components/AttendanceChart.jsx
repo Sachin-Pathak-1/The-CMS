@@ -1,35 +1,29 @@
+import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-
-// #region Sample data
-const data = [
-    {
-        name: 'Mon',
-        present: 90,
-        absent: 40,
-    },
-    {
-        name: 'Tue',
-        present: 86,
-        absent: 32,
-    },
-    {
-        name: 'Wed',
-        present: 56,
-        absent: 82,
-    },
-    {
-        name: 'Thu',
-        present: 83,
-        absent: 66,
-    },
-    {
-        name: 'Fri',
-        present: 80,
-        absent: 43,
-    },
-];
+import { apiRequest } from "../lib/apiClient";
 
 export function AttendanceChart() {
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        let active = true;
+        const loadSummary = async () => {
+            try {
+                const response = await apiRequest("/public/summary");
+                if (!active) return;
+                setData(Array.isArray(response?.data?.attendance) ? response.data.attendance : []);
+            } catch {
+                if (active) {
+                    setData([]);
+                }
+            }
+        };
+        loadSummary();
+        return () => {
+            active = false;
+        };
+    }, []);
+
     return (
 
         <div className="bg-white rounded-xl h-full p-4">
