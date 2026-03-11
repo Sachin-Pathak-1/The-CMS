@@ -22,6 +22,18 @@ const cartItemSchema = z.object({
   quantity: z.number().int().positive().default(1)
 });
 
+// GET /market/products/public
+export const getPublicProducts = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const result = await getProductsList((page - 1) * limit, limit);
+    return sendPaginated(res, result.products, { page, limit, total: result.total });
+  } catch (error) {
+    return sendError(res, 'Failed to fetch products', 500);
+  }
+};
+
 // GET /market/products
 export const getAllProducts = async (req, res) => {
   try {
