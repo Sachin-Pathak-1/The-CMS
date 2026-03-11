@@ -21,6 +21,9 @@ import leaderboardRouter from "./routes/leaderboard.routes.js";
 import achievementRouter from "./routes/achievement.routes.js";
 import transactionRouter from "./routes/transaction.routes.js";
 import orderRouter from "./routes/order.routes.js";
+import publicRouter from "./routes/public.routes.js";
+import uploadRouter from "./routes/upload.routes.js";
+import chatRouter from "./routes/chat.routes.js";
 
 // Middleware imports
 import errorHandler from "./middleware/errorHandler.js";
@@ -58,6 +61,9 @@ app.use("/leaderboard", leaderboardRouter);
 app.use("/achievements", achievementRouter);
 app.use("/transactions", transactionRouter);
 app.use("/orders", orderRouter);
+app.use("/public", publicRouter);
+app.use("/uploads", uploadRouter);
+app.use("/chat", chatRouter);
 
 // 404 handler
 app.use((req, res) => {
