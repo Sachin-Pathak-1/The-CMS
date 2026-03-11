@@ -6,7 +6,18 @@ export const getOrdersByUser = async (userId, skip = 0, take = 20) => {
             where: { userId },
             skip, take,
             include: {
-                product: { select: { name: true, price: true, imageUrl: true } }
+                items: {
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                price: true,
+                                image: true
+                            }
+                        }
+                    }
+                }
             },
             orderBy: { orderDate: 'desc' }
         }),
@@ -19,7 +30,11 @@ export const getOrderById = async (id) => {
     return await prisma.order.findUnique({
         where: { id },
         include: {
-            product: true,
+            items: {
+                include: {
+                    product: true
+                }
+            },
             user: { select: { id: true, username: true } }
         }
     });
@@ -32,7 +47,11 @@ export const getAllOrders = async (skip = 0, take = 20, status = null) => {
             where,
             skip, take,
             include: {
-                product: { select: { name: true, price: true } },
+                items: {
+                    include: {
+                        product: { select: { name: true, price: true, image: true } }
+                    }
+                },
                 user: { select: { username: true } }
             },
             orderBy: { orderDate: 'desc' }
