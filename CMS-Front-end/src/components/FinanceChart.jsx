@@ -1,70 +1,29 @@
+import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-
-const data = [
-  {
-    name: 'Jan',
-    income: 4000,
-    expence: 2400,
-  },
-  {
-    name: 'Fed',
-    income: 3000,
-    expence: 1398,
-  },
-  {
-    name: 'Mar',
-    income: 2000,
-    expence: 9800,
-  },
-  {
-    name: 'Apr',
-    income: 1890,
-    expence: 4800,
-  },
-  {
-    name: 'May',
-    income: 2390,
-    expence: 3800,
-  },
-  {
-    name: 'June',
-    income: 3490,
-    expence: 4300,
-  },
-  {
-    name: 'July',
-    income: 2780,
-    expence: 3908,
-  },
-  {
-    name: 'Aug',
-    income: 2780,
-    expence: 3908,
-  },
-  {
-    name: 'Sept',
-    income: 2780,
-    expence: 3908,
-  },
-  {
-    name: 'Ocr',
-    income: 2780,
-    expence: 3908,
-  },
-  {
-    name: 'Nov',
-    income: 2780,
-    expence: 3908,
-  },
-  {
-    name: 'Dec',
-    income: 2780,
-    expence: 3908,
-  },
-  
-];
+import { apiRequest } from "../lib/apiClient";
 
 export function FinanceChart() {
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        let active = true;
+        const loadSummary = async () => {
+            try {
+                const response = await apiRequest("/public/summary");
+                if (!active) return;
+                setData(Array.isArray(response?.data?.finance) ? response.data.finance : []);
+            } catch {
+                if (active) {
+                    setData([]);
+                }
+            }
+        };
+        loadSummary();
+        return () => {
+            active = false;
+        };
+    }, []);
+
     return (
         <div className="bg-white rounded-xl h-full p-4">
             {/* TITLE */}
