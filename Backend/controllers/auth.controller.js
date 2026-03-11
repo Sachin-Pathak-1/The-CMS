@@ -89,7 +89,15 @@ const login = async (req, res) => {
 
     await createAuditLog(user.id, 'AUTH', 'LOGIN', 'User', user.id);
 
-    return res.redirect("/dashboard");
+    return sendSuccess(res, {
+      user: userData,
+      redirectTo:
+        user.type === "admin"
+          ? "/admin"
+          : user.type === "teacher"
+            ? "/teacher"
+            : "/student"
+    }, "Login successful");
   } catch (error) {
     if (error.name === 'ZodError') {
       return sendError(res, 'Validation failed', 400, error.errors.map(e => ({ field: e.path.join('.'), message: e.message })));
