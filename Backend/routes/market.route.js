@@ -1,6 +1,6 @@
 import express from 'express';
 import {
-    getAllProducts, getProduct, createProduct, updateProduct, deleteProduct,
+    getAllProducts, getPublicProducts, getProduct, createProduct, updateProduct, deleteProduct,
     searchProductsHandler, addToCartHandler, getCartHandler,
     removeFromCartHandler, checkoutHandler
 } from '../controllers/market.controller.js';
@@ -10,6 +10,7 @@ import authorize from '../middleware/authorize.js';
 const router = express.Router();
 
 // Products
+router.get('/products/public', getPublicProducts);
 router.get('/products', verifyToken, getAllProducts);
 router.get('/products/search', verifyToken, searchProductsHandler);
 router.get('/products/:id', verifyToken, getProduct);
