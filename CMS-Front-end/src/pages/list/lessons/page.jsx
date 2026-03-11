@@ -4,12 +4,12 @@ import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
-import { lessonsData } from "../../../lib/data";
 import { getVisibleRows } from "../../../lib/listUtils";
+import { useBackendList } from "../../../hooks/useBackendList";
 import { Layout } from "../../Layout";
 
 export function LessonsListPage () {
-    const [lessons, setLessons] = useState(lessonsData);
+    const { data: lessons, setData: setLessons, loading, error } = useBackendList("lessons");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filterQuery, setFilterQuery] = useState("");
@@ -194,6 +194,8 @@ export function LessonsListPage () {
                         </div>
                     </div>
                 </div>
+                {loading && <p className="mb-3 text-sm text-gray-500">Loading lessons...</p>}
+                {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
                 {/* LIST */}
                 <Table columns={columns} data={visibleLessons} onDelete={handleDeleteLesson} renderRow={renderLessonRow} />
                 {/* PAGINATION */}
