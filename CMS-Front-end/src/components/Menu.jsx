@@ -69,17 +69,35 @@ const menuItems = [
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
+                icon: "/finance.png",
+                label: "Wallet",
+                href: "/wallet",
+                visible: ["admin", "teacher", "student", "parent"],
+            },
+            {
+                icon: "/finance.png",
+                label: "Store",
+                href: "/store",
+                visible: ["admin", "teacher", "student", "parent"],
+            },
+            {
+                icon: "/result.png",
+                label: "Orders",
+                href: "/orders",
+                visible: ["admin", "teacher", "student", "parent"],
+            },
+            {
                 icon: "/calendar.png",
                 label: "Events",
                 href: "/list/events",
                 visible: ["admin", "teacher", "student", "parent"],
             },
-            // {
-            //     icon: "/message.png",
-            //     label: "Messages",
-            //     href: "/list/messages",
-            //     visible: ["admin", "teacher", "student", "parent"],
-            // },
+            {
+                icon: "/message.png",
+                label: "Chat",
+                href: "/chat",
+                visible: ["admin", "teacher", "student", "parent"],
+            },
             {
                 icon: "/announcement.png",
                 label: "Announcements",
@@ -115,19 +133,31 @@ const menuItems = [
 
 
 import { Link } from "react-router-dom";
+import { useChatUnreadCount } from "../hooks/useChatUnreadCount";
+import { useAuth } from "../contexts/AuthContext";
 
 export function Menu() {
+    const unreadCount = useChatUnreadCount();
+    const { user } = useAuth();
+
     return (
         <div className="">
             {menuItems.map((i) => {
+                const visibleItems = i.items.filter((item) => !user || item.visible.includes(user.type));
+                if (visibleItems.length === 0) return null;
                 return (
                     <div key={i.title} className="text-xs">
                         <span className="flex text-gray-400  md:pl-5 w-full md:justify-start justify-center">{i.title}</span>
-                        {i.items.map((item) => {
+                        {visibleItems.map((item) => {
                             return (
-                                <Link key={item.label} to={item.href} className="flex items-center justify-center lg:justify-start gap-2 p-1  lg:pl-8  ml-2 m-3 hover:bg-gray-200 rounded-md hover:bg-blue-100">
+                                <Link key={item.label} to={item.href} className="relative flex items-center justify-center lg:justify-start gap-2 p-1  lg:pl-8  ml-2 m-3 hover:bg-gray-200 rounded-md hover:bg-blue-100">
                                     <img src={item.icon} alt={item.label} width={16} height={16} />
                                     <span className="hidden lg:block">{item.label}</span>
+                                    {item.label === "Chat" && unreadCount > 0 ? (
+                                        <span className="absolute right-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                                            {unreadCount}
+                                        </span>
+                                    ) : null}
                                 </Link>
                             )
                         })}
