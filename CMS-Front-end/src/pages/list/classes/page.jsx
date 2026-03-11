@@ -5,12 +5,12 @@ import { Table } from "../../../components/Table";
 import { TableSearch } from "../../../components/TableSearch";
 import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
-import { classesData } from "../../../lib/data";
 import { getVisibleRows } from "../../../lib/listUtils";
+import { useBackendList } from "../../../hooks/useBackendList";
 import { Layout } from "../../Layout";
 
 export function ClassesListPage () {
-    const [classes, setClasses] = useState(classesData);
+    const { data: classes, setData: setClasses, loading, error } = useBackendList("classes");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filterQuery, setFilterQuery] = useState("");
@@ -156,6 +156,8 @@ export function ClassesListPage () {
                         </div>
                     </div>
                 </div>
+                {loading && <p className="mb-3 text-sm text-gray-500">Loading classes...</p>}
+                {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
                 {/* LIST */}
                 <Table columns={columns} data={visibleClasses} onDelete={handleDeleteClass} renderRow={renderClassRow} />
                 {/* PAGINATION */}
