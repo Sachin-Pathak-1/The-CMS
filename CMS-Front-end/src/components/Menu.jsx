@@ -131,8 +131,7 @@ const menuItems = [
     },
 ];
 
-
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useChatUnreadCount } from "../hooks/useChatUnreadCount";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -141,24 +140,44 @@ export function Menu() {
     const { user } = useAuth();
 
     return (
-        <div className="">
+        <div className="mt-4 space-y-5">
             {menuItems.map((i) => {
                 const visibleItems = i.items.filter((item) => !user || item.visible.includes(user.type));
                 if (visibleItems.length === 0) return null;
                 return (
                     <div key={i.title} className="text-xs">
-                        <span className="flex text-gray-400  md:pl-5 w-full md:justify-start justify-center">{i.title}</span>
+                        <span className="mb-2 flex w-full justify-center px-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400 md:justify-start lg:px-4">
+                            {i.title}
+                        </span>
                         {visibleItems.map((item) => {
+                            const isLogout = item.href === "/logout";
+                            if (isLogout) return null;
                             return (
-                                <Link key={item.label} to={item.href} className="relative flex items-center justify-center lg:justify-start gap-2 p-1  lg:pl-8  ml-2 m-3 hover:bg-gray-200 rounded-md hover:bg-blue-100">
-                                    <img src={item.icon} alt={item.label} width={16} height={16} />
-                                    <span className="hidden lg:block">{item.label}</span>
-                                    {item.label === "Chat" && unreadCount > 0 ? (
-                                        <span className="absolute right-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                                            {unreadCount}
-                                        </span>
-                                    ) : null}
-                                </Link>
+                                <NavLink
+                                    key={item.label}
+                                    to={item.href}
+                                    className={({ isActive }) =>
+                                        `relative mx-1 flex items-center justify-center gap-3 rounded-2xl border px-2 py-3 transition lg:mx-0 lg:justify-start lg:px-4 ${
+                                            isActive
+                                                ? "border-slate-900 bg-slate-900 text-white shadow-lg"
+                                                : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-white/70"
+                                        }`
+                                    }
+                                >
+                                    {({ isActive }) => (
+                                        <>
+                                            <span className={`flex h-9 w-9 items-center justify-center rounded-2xl ${isActive ? "bg-white/10" : "bg-white/70"}`}>
+                                                <img src={item.icon} alt={item.label} width={16} height={16} className={isActive ? "brightness-0 invert" : ""} />
+                                            </span>
+                                            <span className="hidden truncate text-sm font-medium lg:block">{item.label}</span>
+                                            {item.label === "Chat" && unreadCount > 0 ? (
+                                                <span className="absolute right-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                                                    {unreadCount}
+                                                </span>
+                                            ) : null}
+                                        </>
+                                    )}
+                                </NavLink>
                             )
                         })}
                     </div>

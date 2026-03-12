@@ -36,11 +36,11 @@ export function EventCalender() {
     }, []);
 
     return (
-        <div className="w-full shrink-0 rounded-xl bg-white p-4">            
+        <div className="glass-panel w-full shrink-0 p-5">
             <Calendar onChange={onChange} value={value} />
             <div className="flex items-center justify-between">
-                <h1 className="text-lg font-semibold my-3">Events</h1>
-                <Link to="/list/assignments" className="text-xs text-blue-600 hover:underline">
+                <h1 className="my-3 text-lg font-semibold text-slate-800">Events</h1>
+                <Link to="/list/events" className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-700 hover:underline">
                     View All
                 </Link>
             </div>
@@ -48,26 +48,26 @@ export function EventCalender() {
                 {events.map((event)=>(
                     <Link
                         key={event.id}
-                        to="/list/assignments"
-                        className={`block overflow-hidden rounded-md border border-gray-100 border-t-4 p-3 transition hover:bg-gray-50 ${
-                            event.isUrgent ? "border-t-red-300" : "odd:border-t-blue-200 even:border-t-purple-300"
+                        to="/list/events"
+                        className={`block overflow-hidden rounded-2xl border p-4 transition hover:bg-slate-50 ${
+                            event.isUrgent ? "border-rose-200 bg-rose-50/60" : "border-slate-100 bg-slate-50/80"
                         }`}
                     >
                         <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                                <h1 className="min-w-0 break-words text-sm font-semibold text-gray-600">{event.title}</h1>
-                                <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                    event.isUrgent ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                                <h1 className="min-w-0 break-words text-sm font-semibold text-slate-700">{event.title}</h1>
+                                <span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${
+                                    event.isUrgent ? "bg-rose-100 text-rose-700" : "bg-sky-100 text-sky-700"
                                 }`}>
                                     {event.isUrgent ? "Urgent" : "Latest"}
                                 </span>
                             </div>
-                            <span className="shrink-0 text-xs text-gray-400">{event.time}</span>
+                            <span className="shrink-0 text-xs uppercase tracking-[0.14em] text-slate-400">{event.time}</span>
                         </div>
-                        <p className="mt-2 break-words text-xs leading-5 text-gray-600">{event.description}</p>
+                        <p className="mt-3 break-words text-xs leading-6 text-slate-500">{event.description}</p>
                     </Link>
                 ))}
-                {events.length === 0 && <p className="text-xs text-gray-500">No events found.</p>}
+                {events.length === 0 && <p className="rounded-2xl bg-slate-50 p-4 text-xs text-slate-500">No events found.</p>}
             </div>
         </div>
     );

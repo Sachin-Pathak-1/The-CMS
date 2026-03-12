@@ -26,11 +26,11 @@ export function AttendanceChart() {
 
     return (
 
-        <div className="bg-white rounded-xl h-full p-4">
+        <div className="glass-panel h-full p-5">
             {/* TITLE */}
             <div className="flex justify-between items-center">
-                <h1 className='font-semibold text-lg'>Attendance</h1>
-                <img src="/moreDark.png" alt="" width={20} height={20} />
+                <h1 className='text-lg font-semibold text-slate-800'>Attendance</h1>
+                <img src="/moreDark.png" alt="" width={20} height={20} className="opacity-60" />
             </div>
             {/* CHART */}
             <div className="w-full h-[90%] flex ">

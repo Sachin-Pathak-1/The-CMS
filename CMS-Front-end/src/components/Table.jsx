@@ -19,12 +19,12 @@ export function Table({ data, columns, onDelete, renderRow }) {
     };
 
     const renderTableHead = () => (
-        <thead className="bg-gray-50 text-gray-600">
+        <thead className="bg-slate-50/80 text-slate-500">
             <tr>
                 {columns.map((col) => (
                     <th
                         key={col.accessor}
-                        className={`p-2 ${col.accessor === "action" ? "text-center" : "text-left"} ${col.className || ""}`}
+                        className={`px-4 py-4 text-[11px] font-semibold uppercase tracking-[0.18em] ${col.accessor === "action" ? "text-center" : "text-left"} ${col.className || ""}`}
                     >
                         {col.header}
                     </th>
@@ -36,28 +36,28 @@ export function Table({ data, columns, onDelete, renderRow }) {
     const renderDefaultRow = (row, rowIndex) => (
         <tr
             key={row.id}
-            className={`border-t hover:bg-gray-50 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+            className={`border-t border-slate-100 transition hover:bg-slate-50/80 ${rowIndex % 2 === 0 ? "bg-white/80" : "bg-slate-50/40"}`}
         >
             {columns.map((col) => {
                 if (col.accessor === "info") {
                     return (
-                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
                             <div className="flex items-center gap-3">
                                 {row.photo ? (
                                     <img
                                         src={row.photo}
                                         alt={row.name}
-                                        className="w-10 h-10 rounded-full object-cover"
+                                        className="h-11 w-11 rounded-2xl object-cover"
                                     />
                                 ) : (
-                                    <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white">
                                         {getInitials(row.name)}
                                     </div>
                                 )}
 
                                 <div>
-                                    <p className="font-medium">{row.name}</p>
-                                    <p className="text-xs text-gray-500">{row.email}</p>
+                                    <p className="font-medium text-slate-800">{row.name}</p>
+                                    <p className="text-xs text-slate-500">{row.email}</p>
                                 </div>
                             </div>
                         </td>
@@ -66,17 +66,17 @@ export function Table({ data, columns, onDelete, renderRow }) {
 
                 if (col.accessor === "action") {
                     return (
-                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
                             <div className="flex justify-center gap-3">
                                 <Link to={`/student/details`}>
-                                    <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                    <button className="icon-button h-9 w-9">
                                         <img src="/view.png" width={14} height={14} />
                                     </button>
                                 </Link>
                                 <button
                                     type="button"
                                     onClick={() => handleDelete(row.id)}
-                                    className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 transition hover:bg-rose-100"
                                 >
                                     <img src="/delete.png" width={14} height={14} />
                                 </button>
@@ -87,14 +87,14 @@ export function Table({ data, columns, onDelete, renderRow }) {
 
                 if (Array.isArray(row[col.accessor])) {
                     return (
-                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        <td key={col.accessor} className={`px-4 py-4 text-slate-700 ${col.className || ""}`}>
                             {row[col.accessor].join(", ")}
                         </td>
                     );
                 }
 
                 return (
-                    <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                    <td key={col.accessor} className={`px-4 py-4 text-slate-700 ${col.className || ""}`}>
                         {row[col.accessor]}
                     </td>
                 );
@@ -113,8 +113,8 @@ export function Table({ data, columns, onDelete, renderRow }) {
 
 
     return (
-        <div className="bg-white rounded-xl shadow overflow-x-auto">
-            <table className="w-full text-sm table-auto">
+        <div className="glass-panel overflow-x-auto">
+            <table className="w-full table-auto text-sm">
                 {renderTableHead()}
 
                 {/* ================= BODY ================= */}
@@ -124,7 +124,7 @@ export function Table({ data, columns, onDelete, renderRow }) {
                     )}
                     {rows.length === 0 && (
                         <tr>
-                            <td colSpan={columns.length} className="p-4 text-center text-sm text-gray-500">
+                            <td colSpan={columns.length} className="px-4 py-10 text-center text-sm text-slate-500">
                                 No records found.
                             </td>
                         </tr>

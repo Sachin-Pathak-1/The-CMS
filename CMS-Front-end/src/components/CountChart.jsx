@@ -52,11 +52,11 @@ export function CountChart() {
     const girlsPct = total ? 100 - boysPct : 0;
 
     return (
-        <div className="bg-white rounded-xl w-full h-full p-4">
+        <div className="glass-panel w-full h-full p-5">
             {/* TITLE */}
             <div className="flex justify-between items-center">
-                <h1 className='font-semibold text-lg'>Students</h1>
-                <img src="/moreDark.png" alt="" width={20} height={20} />
+                <h1 className='text-lg font-semibold text-slate-800'>Students</h1>
+                <img src="/moreDark.png" alt="" width={20} height={20} className="opacity-60" />
             </div>
             {/* CHART */}
             <div className="relative w-full h-[72%] flex ">
@@ -79,12 +79,12 @@ export function CountChart() {
                 <div className="flex flex-col gap-1">
                     <div className="w-4 h-4 bg-blue-500 rounded-full" />
                     <h1 className='font-bold'>{boys.toLocaleString()}</h1>
-                    <h2 className='text-xs text-gray-500'>Boys ({boysPct}%)</h2>
+                    <h2 className='text-xs text-slate-500'>Boys ({boysPct}%)</h2>
                 </div>
                 <div className="flex flex-col gap-1">
                     <div className="w-4 h-4 bg-purple-500 rounded-full" />
                     <h1 className='font-bold'>{girls.toLocaleString()}</h1>
-                    <h2 className='text-xs text-gray-500'>Girls ({girlsPct}%)</h2>
+                    <h2 className='text-xs text-slate-500'>Girls ({girlsPct}%)</h2>
                 </div>
             </div>
         </div>

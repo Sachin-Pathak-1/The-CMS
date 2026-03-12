@@ -25,14 +25,14 @@ export function FinanceChart() {
     }, []);
 
     return (
-        <div className="bg-white rounded-xl h-full p-4">
+        <div className="glass-panel h-full p-5">
             {/* TITLE */}
             <div className="flex justify-between items-center">
-                <h1 className='font-semibold text-lg'>Finance</h1>
-                <img src="/moreDark.png" alt="" width={20} height={20} />
+                <h1 className='text-lg font-semibold text-slate-800'>Finance</h1>
+                <img src="/moreDark.png" alt="" width={20} height={20} className="opacity-60" />
             </div>
             {/* FINANCE CHART */}
-            <div className="w-full h-[90%] flex justify-center items-center text-gray-400">
+            <div className="flex h-[90%] w-full items-center justify-center text-slate-400">
                 <LineChart
                 style={{ width: '100%', height: '100%', maxHeight: '80vh', aspectRatio: 1.618 }}
                 responsive

@@ -4,20 +4,25 @@ import { Menu } from "../components/Menu";
 
 export function Layout({ children }) {
     return(
-        <>
-            <div className="flex h-screen">
-                <div className="w-[14%] md:w-[8%] lg:w-[16%] xl:w-[14%] ">
-                    <Link to="/" className="flex items-center justify-center lg:justify-start gap-2 lg:pl-4 pt-2 mb-3">
+        <div className="app-shell">
+            <aside className="app-sidebar w-[16%] min-w-[88px] md:w-[9%] lg:w-[18%] xl:w-[15%]">
+                <div className="sticky top-0 px-3 pb-6 pt-4 lg:px-4">
+                    <Link to="/" className="glass-panel flex items-center justify-center gap-3 px-3 py-3 lg:justify-start">
                         <img src="/logo.png" alt="logo" width={32} height={34}/>
-                        <span className="hidden lg:block font-bold ">Learnytics</span>
+                        <div className="hidden lg:block">
+                            <p className="text-sm font-semibold text-slate-800">Learnytics</p>
+                            <p className="text-xs text-slate-500">Campus workspace</p>
+                        </div>
                     </Link>
                     <Menu />
                 </div>
-                <div className="w-[86%] md:w-[92%] lg:w-[84%] xl:w-[86%] overflow-scroll bg-gray-100">                        
+            </aside>
+            <main className="app-main w-[84%] md:w-[91%] lg:w-[82%] xl:w-[85%]">
+                <div className="mx-auto max-w-[1680px] px-3 pb-6 pt-3 md:px-4">
                     <Navbar />
                     {children}
                 </div>
-            </div>
-        </>
+            </main>
+        </div>
     );
 }
