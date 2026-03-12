@@ -5,6 +5,9 @@ export function useBackendList(type, initialValue = []) {
   const [data, setData] = useState(initialValue);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const reload = () => setReloadKey((value) => value + 1);
 
   useEffect(() => {
     let active = true;
@@ -29,7 +32,7 @@ export function useBackendList(type, initialValue = []) {
     return () => {
       active = false;
     };
-  }, [type]);
+  }, [type, reloadKey]);
 
-  return { data, setData, loading, error };
+  return { data, setData, loading, error, reload };
 }

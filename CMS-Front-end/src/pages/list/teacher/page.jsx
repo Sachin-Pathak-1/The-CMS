@@ -8,99 +8,74 @@ import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
 import { Layout } from "../../Layout";
+import { apiRequest } from "../../../lib/apiClient";
+import { useAuth } from "../../../contexts/AuthContext";
 
-export function TeacherListPage () {
-    const { data: teachers, setData: setTeachers, loading, error } = useBackendList("teachers");
+export function TeacherListPage() {
+    const { data: teachers, loading, error, reload } = useBackendList("teachers");
+    const { user } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [filterQuery, setFilterQuery] = useState("");
     const [sortDirection, setSortDirection] = useState("none");
+    const [actionError, setActionError] = useState("");
+
+    const canManageTeachers = user?.type === "admin";
+
     const addTeacherFields = [
-        { name: "name", placeholder: "Name" },
+        { name: "username", placeholder: "Username" },
         { name: "email", type: "email", placeholder: "Email" },
-        { name: "teacherId", placeholder: "Teacher ID" },
-        { name: "phone", placeholder: "Phone" },
-        { name: "subjects", placeholder: "Subjects (comma separated)" },
-        { name: "classes", placeholder: "Classes (comma separated)" },
-        { name: "photo", placeholder: "Photo URL (optional)", required: false, fullWidth: true },
-        { name: "address", placeholder: "Address", fullWidth: true },
+        { name: "password", type: "password", placeholder: "Password" },
+        { name: "collegeId", type: "number", placeholder: "College ID" },
+        { name: "firstName", placeholder: "First Name" },
+        { name: "lastName", placeholder: "Last Name" },
+        { name: "sex", placeholder: "Sex (male/female/other)" },
+        { name: "dob", type: "date", placeholder: "Date of Birth" },
+        { name: "phone", placeholder: "Phone", required: false },
     ];
 
-
     const columns = [
-        {
-            header:"Info" ,
-            accessor:"info",
-        },
-        {
-            header:"Teacher ID" ,
-            accessor:"teacherId",
-            className: "hidden md:table-cell",
-        },
-        {
-            header:"Subjects" ,
-            accessor:"subjects",
-            className: "hidden md:table-cell",
-        },
-        {
-            header:"Classes" ,
-            accessor:"classes",
-            className: "hidden md:table-cell",
-        },
-        {
-            header:"Phone" ,
-            accessor:"phone",
-            className: "hidden lg:table-cell",
-        },
-        {
-            header:"Address" ,
-            accessor:"address",
-            className: "hidden lg:table-cell",
-        },
-        {
-            header:"Actions",
-            accessor:"action",   
-        },
-    ]
+        { header: "Info", accessor: "info" },
+        { header: "Teacher ID", accessor: "teacherId", className: "hidden md:table-cell" },
+        { header: "Subjects", accessor: "subjects", className: "hidden md:table-cell" },
+        { header: "Classes", accessor: "classes", className: "hidden md:table-cell" },
+        { header: "Phone", accessor: "phone", className: "hidden lg:table-cell" },
+        { header: "Address", accessor: "address", className: "hidden lg:table-cell" },
+        { header: "Actions", accessor: "action" },
+    ];
 
-    const handleAddTeacher = (formData) => {
-        const toList = (value) =>
-            value
-                .split(",")
-                .map((item) => item.trim())
-                .filter(Boolean);
-
-        const newTeacher = {
-            id: teachers.length ? Math.max(...teachers.map((t) => t.id)) + 1 : 1,
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            teacherId: formData.teacherId.trim(),
-            subjects: toList(formData.subjects),
-            classes: toList(formData.classes),
-            phone: formData.phone.trim(),
-            address: formData.address.trim(),
-            photo: formData.photo.trim(),
-        };
-
-        setTeachers((prev) => [newTeacher, ...prev]);
-        setIsAddModalOpen(false);
+    const handleAddTeacher = async (formData) => {
+        try {
+            setActionError("");
+            await apiRequest("/user/teachers", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: formData.username.trim(),
+                    email: formData.email.trim(),
+                    password: formData.password,
+                    collegeId: Number(formData.collegeId || 45),
+                    firstName: formData.firstName.trim(),
+                    lastName: formData.lastName.trim(),
+                    sex: formData.sex.trim().toLowerCase(),
+                    dob: formData.dob,
+                    phone: formData.phone?.trim() || undefined,
+                }),
+            });
+            setIsAddModalOpen(false);
+            reload();
+        } catch (err) {
+            setActionError(err.message || "Failed to add teacher");
+        }
     };
 
-    const handleDeleteTeacher = (teacherId) => {
-        setTeachers((prev) => prev.filter((teacher) => teacher.id !== teacherId));
-    };
-
-    const handleFilterClick = () => {
-        setIsFilterModalOpen(true);
-    };
-
-    const handleSortClick = () => {
-        setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
-    };
-
-    const handleApplyFilter = (nextQuery) => {
-        setFilterQuery(nextQuery);
-        setIsFilterModalOpen(false);
+    const handleDeleteTeacher = async (teacherId) => {
+        try {
+            setActionError("");
+            await apiRequest(`/user/teachers/${teacherId}`, { method: "DELETE" });
+            reload();
+        } catch (err) {
+            setActionError(err.message || "Failed to delete teacher");
+        }
     };
 
     const getInitials = (name) =>
@@ -113,23 +88,23 @@ export function TeacherListPage () {
     const renderTeacherRow = (row, rowIndex) => (
         <tr
             key={row.id}
-            className={`border-t hover:bg-gray-50 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+            className={`border-t border-slate-100 transition hover:bg-slate-50/80 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
         >
             {columns.map((col) => {
                 if (col.accessor === "info") {
                     return (
-                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
                             <div className="flex items-center gap-3">
                                 {row.photo ? (
-                                    <img src={row.photo} alt={row.name} className="w-10 h-10 rounded-full object-cover" />
+                                    <img src={row.photo} alt={row.name} className="h-10 w-10 rounded-full object-cover" />
                                 ) : (
-                                    <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 font-semibold text-white">
                                         {getInitials(row.name)}
                                     </div>
                                 )}
                                 <div>
                                     <p className="font-medium">{row.name}</p>
-                                    <p className="text-xs text-gray-500">{row.email}</p>
+                                    <p className="text-xs text-slate-500">{row.email}</p>
                                 </div>
                             </div>
                         </td>
@@ -138,20 +113,22 @@ export function TeacherListPage () {
 
                 if (col.accessor === "action") {
                     return (
-                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
                             <div className="flex justify-center gap-3">
                                 <Link to={`/teacher/details/${row.id}`} state={{ teacher: row }}>
-                                    <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                    <button className="icon-button h-9 w-9">
                                         <img src="/view.png" width={14} height={14} />
                                     </button>
                                 </Link>
-                                <button
-                                    type="button"
-                                    onClick={() => handleDeleteTeacher(row.id)}
-                                    className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200"
-                                >
-                                    <img src="/delete.png" width={14} height={14} />
-                                </button>
+                                {canManageTeachers ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteTeacher(row.id)}
+                                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 transition hover:bg-rose-100"
+                                    >
+                                        <img src="/delete.png" width={14} height={14} />
+                                    </button>
+                                ) : null}
                             </div>
                         </td>
                     );
@@ -159,7 +136,7 @@ export function TeacherListPage () {
 
                 const value = row[col.accessor];
                 return (
-                    <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                    <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
                         {Array.isArray(value) ? value.join(", ") : value}
                     </td>
                 );
@@ -171,66 +148,66 @@ export function TeacherListPage () {
         () => getVisibleRows(teachers, { query: filterQuery, sortAccessor: "name", sortDirection }),
         [teachers, filterQuery, sortDirection]
     );
-    
-    return(
+
+    return (
         <Layout>
-            <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
-                {/* TOP */}
-                <div className="flex items-center justify-between mb-5">
-                    <h1 className="hidden md:block text-lg font-semibold">All Teachers</h1>
-                    <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto ">
+            <div className="glass-panel-strong m-4 mt-0 flex-1 p-5">
+                <div className="mb-5 flex items-center justify-between">
+                    <h1 className="hidden text-lg font-semibold md:block">All Teachers</h1>
+                    <div className="flex w-full flex-col items-center gap-4 md:w-auto md:flex-row">
                         <TableSearch />
                         <div className="flex items-center gap-4 self-end">
                             <button
                                 type="button"
-                                onClick={handleFilterClick}
+                                onClick={() => setIsFilterModalOpen(true)}
                                 title="Filter teachers"
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
                             >
                                 <img src="/filter.png" alt="" width={14} height={14} />
                             </button>
                             <button
                                 type="button"
-                                onClick={handleSortClick}
+                                onClick={() => setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"))}
                                 title={`Sort by name (${sortDirection})`}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
                             >
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setIsAddModalOpen(true)}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
-                            >
-                                <img src="/plus.png" alt="" width={14} height={14} />
-                            </button>
+                            {canManageTeachers ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAddModalOpen(true)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
+                                >
+                                    <img src="/plus.png" alt="" width={14} height={14} />
+                                </button>
+                            ) : null}
                         </div>
                     </div>
                 </div>
-                {loading && <p className="mb-3 text-sm text-gray-500">Loading teachers...</p>}
-                {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
-                {/* LIST */}
-                <Table
-                    columns={columns}
-                    data={visibleTeachers}
-                    onDelete={handleDeleteTeacher}
-                    renderRow={renderTeacherRow}
-                />
-                {/* PAGINATION */}
+                {loading && <p className="mb-3 text-sm text-slate-500">Loading teachers...</p>}
+                {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
+                {actionError && <p className="mb-3 text-sm text-rose-600">{actionError}</p>}
+                <Table columns={columns} data={visibleTeachers} renderRow={renderTeacherRow} />
                 <Pagination />
             </div>
-            <FormModel
-                open={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                onSubmit={handleAddTeacher}
-                title="Add Teacher"
-                submitLabel="Add Teacher"
-                fields={addTeacherFields}
-            />
+            {canManageTeachers ? (
+                <FormModel
+                    open={isAddModalOpen}
+                    onClose={() => setIsAddModalOpen(false)}
+                    onSubmit={handleAddTeacher}
+                    title="Add Teacher"
+                    submitLabel="Add Teacher"
+                    fields={addTeacherFields}
+                />
+            ) : null}
             <FilterModal
                 open={isFilterModalOpen}
                 onClose={() => setIsFilterModalOpen(false)}
-                onApply={handleApplyFilter}
+                onApply={(nextQuery) => {
+                    setFilterQuery(nextQuery);
+                    setIsFilterModalOpen(false);
+                }}
                 initialValue={filterQuery}
                 title="Filter Teachers"
             />

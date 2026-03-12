@@ -23,7 +23,8 @@ const submissionSchema = z.object({
 
 const announcementSchema = z.object({
     title: z.string().min(1).max(255),
-    content: z.string().min(1),
+    description: z.string().min(1).max(2000),
+    image: z.string().url().optional().or(z.literal("")).optional(),
     courseId: z.number().int().positive().optional()
 });
 
