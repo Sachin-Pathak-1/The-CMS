@@ -6,11 +6,18 @@ import { Layout } from "../Layout";
 export function TeacherPage () {
     return(
         <Layout>
-            <div className=" flex flex-col xl:flex-row gap-4 p-4 h-full overflow-hidden scroll-none m-0">
+            <div className="p-4">
+                <section className="hero-panel mb-4">
+                    <span className="page-tag">Teacher Workspace</span>
+                    <h1 className="mt-4 text-3xl font-semibold text-slate-800">Run classes, track events, and stay aligned</h1>
+                    <p className="section-copy max-w-2xl">Your teaching view keeps schedule context, campus events, and announcements in one place so class management stays lightweight.</p>
+                </section>
+            </div>
+            <div className="flex flex-col gap-4 px-4 xl:flex-row">
                 {/* LEFT SIDE */}
                 <div className="w-full lg:w-2/3 flex flex-col gap-4 h-[95%] overflow-y-auto overscroll-contain">
-                    <div className="h-full bg-white p-4 rounded-md">
-                        <h1 className="text-lg font-semibold">Schedule (4A)</h1>
+                    <div className="glass-panel h-full p-5">
+                        <h1 className="text-lg font-semibold text-slate-800">Schedule (4A)</h1>
                         <BigCalendar />
                     </div>
                 </div>

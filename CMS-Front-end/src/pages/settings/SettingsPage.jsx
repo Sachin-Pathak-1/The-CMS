@@ -53,28 +53,29 @@ export function SettingsPage() {
     return (
         <Layout>
             <div className="p-4">
-                <div className="mb-4 rounded-xl bg-white p-5 shadow-sm">
-                    <h1 className="text-xl font-semibold">Settings</h1>
-                    <p className="mt-1 text-sm text-gray-500">Control notifications, preferences, and account security.</p>
-                </div>
+                <section className="hero-panel mb-4">
+                    <span className="page-tag">Settings</span>
+                    <h1 className="mt-4 text-3xl font-semibold text-slate-800">Control preferences, alerts, and account security</h1>
+                    <p className="section-copy max-w-2xl">Fine-tune how the platform communicates with you and keep account access aligned with your daily workflow.</p>
+                </section>
 
                 <div className="grid gap-4 lg:grid-cols-2">
-                    <form onSubmit={handleSaveSettings} className="rounded-xl bg-white p-5 shadow-sm">
-                        <h2 className="text-lg font-semibold">Preferences</h2>
+                    <form onSubmit={handleSaveSettings} className="glass-panel p-6">
+                        <h2 className="text-lg font-semibold text-slate-800">Preferences</h2>
                         <div className="mt-4 space-y-3">
-                            <label className="flex items-center justify-between rounded-md border border-gray-200 p-3">
+                            <label className="soft-panel flex items-center justify-between px-4 py-4">
                                 <span className="text-sm">Email Notifications</span>
                                 <input type="checkbox" checked={settings.notificationsEmail} onChange={() => toggleSetting("notificationsEmail")} />
                             </label>
-                            <label className="flex items-center justify-between rounded-md border border-gray-200 p-3">
+                            <label className="soft-panel flex items-center justify-between px-4 py-4">
                                 <span className="text-sm">SMS Notifications</span>
                                 <input type="checkbox" checked={settings.notificationsSMS} onChange={() => toggleSetting("notificationsSMS")} />
                             </label>
-                            <label className="flex items-center justify-between rounded-md border border-gray-200 p-3">
+                            <label className="soft-panel flex items-center justify-between px-4 py-4">
                                 <span className="text-sm">Attendance Reminders</span>
                                 <input type="checkbox" checked={settings.attendanceReminder} onChange={() => toggleSetting("attendanceReminder")} />
                             </label>
-                            <label className="flex items-center justify-between rounded-md border border-gray-200 p-3">
+                            <label className="soft-panel flex items-center justify-between px-4 py-4">
                                 <span className="text-sm">Weekly Digest</span>
                                 <input type="checkbox" checked={settings.weeklyDigest} onChange={() => toggleSetting("weeklyDigest")} />
                             </label>
@@ -82,12 +83,12 @@ export function SettingsPage() {
 
                         <div className="mt-4 grid gap-3 md:grid-cols-2">
                             <label className="text-sm">
-                                <span className="mb-1 block text-gray-600">Language</span>
+                                <span className="mb-2 block text-slate-600">Language</span>
                                 <select
                                     name="language"
                                     value={settings.language}
                                     onChange={handleSelectChange}
-                                    className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500"
+                                    className="field-select"
                                 >
                                     <option>English</option>
                                     <option>Hindi</option>
@@ -95,12 +96,12 @@ export function SettingsPage() {
                                 </select>
                             </label>
                             <label className="text-sm">
-                                <span className="mb-1 block text-gray-600">Timezone</span>
+                                <span className="mb-2 block text-slate-600">Timezone</span>
                                 <select
                                     name="timezone"
                                     value={settings.timezone}
                                     onChange={handleSelectChange}
-                                    className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500"
+                                    className="field-select"
                                 >
                                     <option>Asia/Kolkata</option>
                                     <option>UTC</option>
@@ -110,51 +111,51 @@ export function SettingsPage() {
                         </div>
 
                         <div className="mt-5 flex items-center justify-end gap-3">
-                            {saveMessage ? <span className="text-sm font-medium text-blue-600">{saveMessage}</span> : null}
-                            <button type="submit" className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                            {saveMessage ? <span className="text-sm font-medium text-sky-700">{saveMessage}</span> : null}
+                            <button type="submit" className="btn-primary">
                                 Save Settings
                             </button>
                         </div>
                     </form>
 
-                    <form onSubmit={handlePasswordSubmit} className="rounded-xl bg-white p-5 shadow-sm">
-                        <h2 className="text-lg font-semibold">Security</h2>
-                        <p className="mt-1 text-sm text-gray-500">Update your password regularly to keep your account secure.</p>
+                    <form onSubmit={handlePasswordSubmit} className="glass-panel p-6">
+                        <h2 className="text-lg font-semibold text-slate-800">Security</h2>
+                        <p className="mt-1 text-sm text-slate-500">Update your password regularly to keep your account secure.</p>
                         <div className="mt-4 space-y-3">
                             <label className="block text-sm">
-                                <span className="mb-1 block text-gray-600">Current Password</span>
+                                <span className="mb-2 block text-slate-600">Current Password</span>
                                 <input
                                     type="password"
                                     name="currentPassword"
                                     value={passwords.currentPassword}
                                     onChange={handlePasswordChange}
-                                    className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500"
+                                    className="field-input"
                                 />
                             </label>
                             <label className="block text-sm">
-                                <span className="mb-1 block text-gray-600">New Password</span>
+                                <span className="mb-2 block text-slate-600">New Password</span>
                                 <input
                                     type="password"
                                     name="newPassword"
                                     value={passwords.newPassword}
                                     onChange={handlePasswordChange}
-                                    className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500"
+                                    className="field-input"
                                 />
                             </label>
                             <label className="block text-sm">
-                                <span className="mb-1 block text-gray-600">Confirm New Password</span>
+                                <span className="mb-2 block text-slate-600">Confirm New Password</span>
                                 <input
                                     type="password"
                                     name="confirmPassword"
                                     value={passwords.confirmPassword}
                                     onChange={handlePasswordChange}
-                                    className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500"
+                                    className="field-input"
                                 />
                             </label>
                         </div>
 
                         <div className="mt-5 flex justify-end">
-                            <button type="submit" className="rounded-md bg-slate-900 px-4 py-2 text-sm text-white hover:bg-black">
+                            <button type="submit" className="btn-primary">
                                 Update Password
                             </button>
                         </div>

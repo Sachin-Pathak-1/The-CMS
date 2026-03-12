@@ -90,22 +90,22 @@ export function EventsListPage () {
     const renderEventRow = (row, rowIndex) => (
         <tr
             key={row.id}
-            className={`border-t hover:bg-gray-50 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+            className={`border-t border-slate-100 transition hover:bg-slate-50/80 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
         >
             {columns.map((col) => {
                 if (col.accessor === "action") {
                     return (
-                        <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                        <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
                             <div className="flex justify-center gap-3">
                                 <Link to="/">
-                                    <button className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200">
+                                    <button className="icon-button h-9 w-9">
                                         <img src="/view.png" width={14} height={14} />
                                     </button>
                                 </Link>
                                 <button
                                     type="button"
                                     onClick={() => handleDeleteEvent(row.id)}
-                                    className="p-2 bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 transition hover:bg-rose-100"
                                 >
                                     <img src="/delete.png" width={14} height={14} />
                                 </button>
@@ -115,7 +115,7 @@ export function EventsListPage () {
                 }
 
                 return (
-                    <td key={col.accessor} className={`p-2 ${col.className || ""}`}>
+                    <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
                         {row[col.accessor]}
                     </td>
                 );
@@ -130,7 +130,7 @@ export function EventsListPage () {
 
     return(
         <Layout>
-            <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+            <div className="glass-panel-strong flex-1 p-5 m-4 mt-0">
                 {/* TOP */}
                 <div className="flex items-center justify-between mb-5">
                     <h1 className="hidden md:block text-lg font-semibold">All Events</h1>
@@ -141,7 +141,7 @@ export function EventsListPage () {
                                 type="button"
                                 onClick={handleFilterClick}
                                 title="Filter events"
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
                             >
                                 <img src="/filter.png" alt="" width={14} height={14} />
                             </button>
@@ -149,22 +149,22 @@ export function EventsListPage () {
                                 type="button"
                                 onClick={handleSortClick}
                                 title={`Sort by title (${sortDirection})`}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
                             >
                                 <img src="/sort.png" alt="" width={14} height={14} />
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsAddModalOpen(true)}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-200 "
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
                             >
                                 <img src="/plus.png" alt="" width={14} height={14} />
                             </button>
                         </div>
                     </div>
                 </div>
-                {loading && <p className="mb-3 text-sm text-gray-500">Loading events...</p>}
-                {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
+                {loading && <p className="mb-3 text-sm text-slate-500">Loading events...</p>}
+                {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
                 {/* LIST */}
                 <Table columns={columns} data={visibleEvents} onDelete={handleDeleteEvent} renderRow={renderEventRow} />
                 {/* PAGINATION */}
@@ -188,3 +188,6 @@ export function EventsListPage () {
         </Layout>
     );
 }
+
+
+

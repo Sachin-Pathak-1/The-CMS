@@ -121,10 +121,11 @@ export function ProfilePage() {
     return (
         <Layout>
             <div className="p-4">
-                <div className="mb-4 rounded-xl bg-white p-5 shadow-sm">
-                    <h1 className="text-xl font-semibold">Profile</h1>
-                    <p className="mt-1 text-sm text-gray-500">Manage your personal details and account identity.</p>
-                </div>
+                <section className="hero-panel mb-4">
+                    <span className="page-tag">Profile</span>
+                    <h1 className="mt-4 text-3xl font-semibold text-slate-800">Manage your identity and account details</h1>
+                    <p className="section-copy max-w-2xl">Update the visible profile, verify personal information, and keep your account data current across the platform.</p>
+                </section>
 
                 {error ? (
                     <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -133,67 +134,67 @@ export function ProfilePage() {
                 ) : null}
 
                 <div className="grid gap-4 lg:grid-cols-3">
-                    <div className="rounded-xl bg-white p-5 shadow-sm lg:col-span-1">
+                    <div className="glass-panel lg:col-span-1 p-6">
                         <div className="flex flex-col items-center text-center">
-                            <img src={profile.avatar || "/avatar.png"} alt="profile" className="h-24 w-24 rounded-full border object-cover" />
-                            <h2 className="mt-3 text-lg font-semibold">{fullName}</h2>
-                            <p className="text-sm capitalize text-gray-500">{profile.role || "User"}</p>
-                            <label className="mt-4 inline-flex cursor-pointer items-center rounded-full bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                            <img src={profile.avatar || "/avatar.png"} alt="profile" className="h-28 w-28 rounded-[28px] border border-slate-200 object-cover shadow-sm" />
+                            <h2 className="mt-4 text-xl font-semibold text-slate-800">{fullName}</h2>
+                            <p className="text-sm capitalize text-slate-500">{profile.role || "User"}</p>
+                            <label className="btn-primary mt-5 cursor-pointer">
                                 {isUploadingAvatar ? "Uploading..." : "Upload Avatar"}
                                 <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                             </label>
                         </div>
                         <div className="mt-5 grid grid-cols-2 gap-2 text-center">
-                            <div className="rounded-md bg-blue-50 p-3">
-                                <p className="text-xs text-gray-500">Role</p>
-                                <p className="text-lg font-semibold capitalize text-blue-700">{profile.role || "User"}</p>
+                            <div className="rounded-2xl bg-sky-50 p-4">
+                                <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Role</p>
+                                <p className="text-lg font-semibold capitalize text-sky-700">{profile.role || "User"}</p>
                             </div>
-                            <div className="rounded-md bg-green-50 p-3">
-                                <p className="text-xs text-gray-500">Department</p>
-                                <p className="text-sm font-semibold text-green-700">{profile.department}</p>
+                            <div className="rounded-2xl bg-emerald-50 p-4">
+                                <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Department</p>
+                                <p className="text-sm font-semibold text-emerald-700">{profile.department}</p>
                             </div>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSave} className="rounded-xl bg-white p-5 shadow-sm lg:col-span-2">
+                    <form onSubmit={handleSave} className="glass-panel lg:col-span-2 p-6">
                         {isLoading ? (
                             <div className="rounded-md bg-slate-50 p-4 text-sm text-slate-500">Loading profile...</div>
                         ) : (
                             <div className="grid gap-4 md:grid-cols-2">
                                 <label className="text-sm">
-                                    <span className="mb-1 block text-gray-600">First Name</span>
-                                    <input name="firstName" value={profile.firstName} onChange={handleChange} className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500" />
+                                    <span className="mb-2 block text-slate-600">First Name</span>
+                                    <input name="firstName" value={profile.firstName} onChange={handleChange} className="field-input" />
                                 </label>
                                 <label className="text-sm">
-                                    <span className="mb-1 block text-gray-600">Last Name</span>
-                                    <input name="lastName" value={profile.lastName} onChange={handleChange} className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500" />
+                                    <span className="mb-2 block text-slate-600">Last Name</span>
+                                    <input name="lastName" value={profile.lastName} onChange={handleChange} className="field-input" />
                                 </label>
                                 <label className="text-sm">
-                                    <span className="mb-1 block text-gray-600">Email</span>
-                                    <input name="email" type="email" value={profile.email} readOnly className="w-full rounded-md border border-gray-200 bg-slate-50 p-2 outline-none" />
+                                    <span className="mb-2 block text-slate-600">Email</span>
+                                    <input name="email" type="email" value={profile.email} readOnly className="field-input bg-slate-50" />
                                 </label>
                                 <label className="text-sm">
-                                    <span className="mb-1 block text-gray-600">Phone</span>
-                                    <input name="phone" value={profile.phone} onChange={handleChange} className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500" />
+                                    <span className="mb-2 block text-slate-600">Phone</span>
+                                    <input name="phone" value={profile.phone} onChange={handleChange} className="field-input" />
                                 </label>
                                 <label className="text-sm">
-                                    <span className="mb-1 block text-gray-600">Sex</span>
-                                    <select name="sex" value={profile.sex} onChange={handleChange} className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500">
+                                    <span className="mb-2 block text-slate-600">Sex</span>
+                                    <select name="sex" value={profile.sex} onChange={handleChange} className="field-select">
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
                                         <option value="other">Other</option>
                                     </select>
                                 </label>
                                 <label className="text-sm">
-                                    <span className="mb-1 block text-gray-600">Date of Birth</span>
-                                    <input name="dob" type="date" value={profile.dob} onChange={handleChange} className="w-full rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500" />
+                                    <span className="mb-2 block text-slate-600">Date of Birth</span>
+                                    <input name="dob" type="date" value={profile.dob} onChange={handleChange} className="field-input" />
                                 </label>
                             </div>
                         )}
 
                         <div className="mt-5 flex items-center justify-end gap-3">
                             {saveMessage ? <span className="text-sm font-medium text-green-600">{saveMessage}</span> : null}
-                            <button type="submit" className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+                            <button type="submit" className="btn-primary">
                                 Save Profile
                             </button>
                         </div>

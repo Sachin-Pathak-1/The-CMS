@@ -92,16 +92,17 @@ export function StorePage() {
     return (
         <Layout>
             <div className="p-4">
-                <div className="rounded-xl bg-white p-5 shadow-sm">
+                <section className="hero-panel">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <h1 className="text-2xl font-semibold">Store</h1>
-                            <p className="mt-1 text-sm text-gray-500">Explore campus essentials and learning gear.</p>
+                            <span className="page-tag">Campus Store</span>
+                            <h1 className="mt-4 text-3xl font-semibold text-slate-800">Explore rewards, essentials, and learning gear</h1>
+                            <p className="section-copy max-w-2xl">Browse curated student products, sort by value, and move directly from discovery to wallet checkout.</p>
                         </div>
                         <button
                             type="button"
                             onClick={() => navigate("/order")}
-                            className="rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-200"
+                            className="btn-primary"
                         >
                             Cart Items: {cartCount}
                         </button>
@@ -112,12 +113,12 @@ export function StorePage() {
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                             placeholder="Search products..."
-                            className="rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500"
+                            className="field-input"
                         />
                         <select
                             value={category}
                             onChange={(event) => setCategory(event.target.value)}
-                            className="rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500"
+                            className="field-select"
                         >
                             {categories.map((item) => (
                                 <option key={item} value={item}>
@@ -128,7 +129,7 @@ export function StorePage() {
                         <select
                             value={sortBy}
                             onChange={(event) => setSortBy(event.target.value)}
-                            className="rounded-md border border-gray-200 p-2 outline-none focus:border-blue-500"
+                            className="field-select"
                         >
                             <option value="featured">Featured</option>
                             <option value="price-low">Price: Low to High</option>
@@ -138,40 +139,40 @@ export function StorePage() {
                         </select>
                     </div>
                     {loadError ? <p className="mt-3 text-xs text-amber-600">{loadError}</p> : null}
-                </div>
+                </section>
 
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {isLoading ? (
-                        <div className="col-span-full rounded-xl bg-white p-6 text-center text-sm text-gray-500 shadow-sm">
+                        <div className="glass-panel col-span-full p-6 text-center text-sm text-slate-500">
                             Loading products...
                         </div>
                     ) : null}
                     {visibleProducts.map((product) => (
-                        <article key={product.id} className="overflow-hidden rounded-xl bg-white shadow-sm">
+                        <article key={product.id} className="glass-panel overflow-hidden p-0">
                             <img src={product.image || product.imageUrl || "/logo.png"} alt={product.name} className="h-48 w-full object-cover" />
                             <div className="p-4">
                                 <div className="mb-2 flex items-start justify-between gap-2">
-                                    <h2 className="text-base font-semibold leading-tight">{product.name}</h2>
-                                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs">{product.category || "General"}</span>
+                                    <h2 className="text-base font-semibold leading-tight text-slate-800">{product.name}</h2>
+                                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">{product.category || "General"}</span>
                                 </div>
-                                <p className="text-sm text-gray-500">{product.description}</p>
+                                <p className="text-sm text-slate-500">{product.description}</p>
                                 <div className="mt-3 flex items-center justify-between text-sm">
-                                    <span className="font-semibold text-blue-700">{formatCurrency(product.price)}</span>
+                                    <span className="font-semibold text-sky-700">{formatCurrency(product.price)}</span>
                                     <span className="text-amber-600">* {product.rating ?? "-"}</span>
                                 </div>
-                                <div className="mt-1 text-xs text-gray-500">Stock: {product.stock}</div>
+                                <div className="mt-1 text-xs text-slate-500">Stock: {product.stock}</div>
                                 <div className="mt-3 grid grid-cols-2 gap-2">
                                     <button
                                         type="button"
                                         onClick={() => handleAddToCart(product)}
-                                        className="rounded-md bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                        className="btn-primary rounded-2xl py-2"
                                     >
                                         Add To Cart
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => handleOrderNow(product)}
-                                        className="rounded-md border border-slate-200 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                        className="btn-secondary rounded-2xl py-2"
                                     >
                                         Order Now
                                     </button>
@@ -182,7 +183,7 @@ export function StorePage() {
                 </div>
 
                 {!isLoading && visibleProducts.length === 0 ? (
-                    <div className="mt-6 rounded-xl bg-white p-6 text-center text-sm text-gray-500 shadow-sm">
+                    <div className="glass-panel mt-6 p-6 text-center text-sm text-slate-500">
                         No products found for the current filters.
                     </div>
                 ) : null}
