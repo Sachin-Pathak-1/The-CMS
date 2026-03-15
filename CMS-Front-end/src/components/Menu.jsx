@@ -131,31 +131,40 @@ const menuItems = [
     },
 ];
 
+import { memo, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { useChatUnreadCount } from "../hooks/useChatUnreadCount";
 import { useAuth } from "../contexts/AuthContext";
+import { getHomeRoute } from "../lib/homeRoute";
 
-export function Menu() {
+function MenuComponent() {
     const unreadCount = useChatUnreadCount();
     const { user } = useAuth();
+    const homeHref = getHomeRoute(user?.type);
+
+    const visibleMenuItems = useMemo(() => {
+        return menuItems.map((section) => ({
+            ...section,
+            items: section.items.filter((item) => !user || item.visible.includes(user.type)),
+        })).filter((section) => section.items.length > 0);
+    }, [user]);
 
     return (
         <div className="mt-4 space-y-5">
-            {menuItems.map((i) => {
-                const visibleItems = i.items.filter((item) => !user || item.visible.includes(user.type));
-                if (visibleItems.length === 0) return null;
+            {visibleMenuItems.map((i) => {
                 return (
                     <div key={i.title} className="text-xs">
                         <span className="mb-2 flex w-full justify-center px-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400 md:justify-start lg:px-4">
                             {i.title}
                         </span>
-                        {visibleItems.map((item) => {
+                        {i.items.map((item) => {
                             const isLogout = item.href === "/logout";
                             if (isLogout) return null;
+                            const href = item.label === "Home" ? homeHref : item.href;
                             return (
                                 <NavLink
                                     key={item.label}
-                                    to={item.href}
+                                    to={href}
                                     className={({ isActive }) =>
                                         `relative mx-1 flex items-center justify-center gap-3 rounded-2xl border px-2 py-3 transition lg:mx-0 lg:justify-start lg:px-4 ${
                                             isActive
@@ -186,3 +195,5 @@ export function Menu() {
         </div>
     );
 }
+
+export const Menu = memo(MenuComponent);
