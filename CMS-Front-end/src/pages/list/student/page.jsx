@@ -7,7 +7,7 @@ import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
-import { Layout } from "../../Layout";
+import { usePagination } from "../../../hooks/usePagination";
 
 export function StudentListPage () {
     const { data: students, setData: setStudents, loading, error } = useBackendList("students");
@@ -84,10 +84,12 @@ export function StudentListPage () {
     };
 
     const handleSortClick = () => {
+        setCurrentPage(1);
         setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
     };
 
     const handleApplyFilter = (nextQuery) => {
+        setCurrentPage(1);
         setFilterQuery(nextQuery);
         setIsFilterModalOpen(false);
     };
@@ -159,9 +161,17 @@ export function StudentListPage () {
         () => getVisibleRows(students, { query: filterQuery, sortAccessor: "name", sortDirection }),
         [students, filterQuery, sortDirection]
     );
+    const {
+        currentPage,
+        pageSize,
+        paginatedData: paginatedStudents,
+        setCurrentPage,
+        totalItems,
+        totalPages,
+    } = usePagination(visibleStudents, { pageSize: 10 });
 
     return(
-        <Layout>
+        <>
             <div className="glass-panel-strong flex-1 p-5 m-4 mt-0">
                 {/* TOP */}
                 <div className="flex items-center justify-between mb-5">
@@ -198,9 +208,15 @@ export function StudentListPage () {
                 {loading && <p className="mb-3 text-sm text-slate-500">Loading students...</p>}
                 {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
                 {/* LIST */}
-                <Table columns={columns} data={visibleStudents} onDelete={handleDeleteStudent} renderRow={renderStudentRow} />
+                <Table columns={columns} data={paginatedStudents} onDelete={handleDeleteStudent} renderRow={renderStudentRow} />
                 {/* PAGINATION */}
-                <Pagination />
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
             <FormModel
                 open={isAddModalOpen}
@@ -217,7 +233,7 @@ export function StudentListPage () {
                 initialValue={filterQuery}
                 title="Filter Students"
             />
-        </Layout>
+        </>
     );
 }
 
