@@ -1,13 +1,32 @@
-// prisma/seed.js
-// import { PrismaClient } from '@prisma/client';
-import prisma from '../utils/prisma.js';
-import { UserRole, Sex, TransactionType, TransactionStatus } from "@prisma/client";
-import { faker } from '@faker-js/faker';
-import bcrypt from 'bcrypt';
+import prisma from "../utils/prisma.js";
+import { Sex, TransactionStatus, TransactionType, UserRole } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 async function main() {
-  prisma.$connect()
-  // ---------- ADDRESS ----------
+  await prisma.$connect();
+
+  const seededPassword = await bcrypt.hash("password123", 10);
+
+  await prisma.auditLog.deleteMany();
+  await prisma.cart.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.transactionHistory.deleteMany();
+  await prisma.submission.deleteMany();
+  await prisma.grade.deleteMany();
+  await prisma.enrollment.deleteMany();
+  await prisma.assignment.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.announcement.deleteMany();
+  await prisma.xp.deleteMany();
+  await prisma.wallet.deleteMany();
+  await prisma.userDetails.deleteMany();
+  await prisma.userRoles.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.course.deleteMany();
+  await prisma.college.deleteMany();
+  await prisma.address.deleteMany();
+
   const address = await prisma.address.create({
     data: {
       addressLine1: "123 Main St",
@@ -18,7 +37,6 @@ async function main() {
     },
   });
 
-  // ---------- COLLEGE ----------
   const college = await prisma.college.create({
     data: {
       name: "Demo College",
@@ -28,12 +46,11 @@ async function main() {
     },
   });
 
-  // ---------- USERS ----------
   const admin = await prisma.user.create({
     data: {
       email: "admin@test.com",
       username: "admin",
-      password: "hashed_pw",
+      password: seededPassword,
       type: UserRole.admin,
       collegeId: college.id,
       userDetails: {
@@ -44,7 +61,6 @@ async function main() {
           dob: new Date("1990-01-01"),
         },
       },
-      wallet: { create: {} },
       xp: { create: { xp: 100, level: 2 } },
     },
   });
@@ -53,7 +69,7 @@ async function main() {
     data: {
       email: "teacher@test.com",
       username: "teacher",
-      password: "hashed_pw",
+      password: seededPassword,
       type: UserRole.teacher,
       collegeId: college.id,
       userDetails: {
@@ -64,7 +80,6 @@ async function main() {
           dob: new Date("1985-05-05"),
         },
       },
-      wallet: { create: {} },
       xp: { create: { xp: 50 } },
     },
   });
@@ -73,7 +88,7 @@ async function main() {
     data: {
       email: "stud1@test.com",
       username: "student1",
-      password: "hashed_pw",
+      password: seededPassword,
       type: UserRole.student,
       collegeId: college.id,
       userDetails: {
@@ -84,7 +99,6 @@ async function main() {
           dob: new Date("2004-03-10"),
         },
       },
-      wallet: { create: {} },
       xp: { create: {} },
     },
   });
@@ -93,7 +107,7 @@ async function main() {
     data: {
       email: "stud2@test.com",
       username: "student2",
-      password: "hashed_pw",
+      password: seededPassword,
       type: UserRole.student,
       collegeId: college.id,
       userDetails: {
@@ -104,12 +118,10 @@ async function main() {
           dob: new Date("2003-07-12"),
         },
       },
-      wallet: { create: {} },
       xp: { create: {} },
     },
   });
 
-  // ---------- COURSE ----------
   const course = await prisma.course.create({
     data: {
       name: "Intro to Programming",
@@ -117,7 +129,6 @@ async function main() {
     },
   });
 
-  // ---------- ENROLLMENTS ----------
   await prisma.enrollment.createMany({
     data: [
       { userId: student1.id, courseId: course.id },
@@ -125,7 +136,6 @@ async function main() {
     ],
   });
 
-  // ---------- ASSIGNMENT ----------
   const assignment = await prisma.assignment.create({
     data: {
       title: "Hello World",
@@ -134,7 +144,6 @@ async function main() {
     },
   });
 
-  // ---------- SUBMISSION ----------
   await prisma.submission.create({
     data: {
       userId: student1.id,
@@ -143,7 +152,6 @@ async function main() {
     },
   });
 
-  // ---------- PRODUCT ----------
   const product = await prisma.product.create({
     data: {
       creatorId: admin.id,
@@ -153,8 +161,7 @@ async function main() {
     },
   });
 
-  // ---------- ORDER ----------
-  const order = await prisma.order.create({
+  await prisma.order.create({
     data: {
       userId: student1.id,
       totalAmount: 50,
@@ -168,7 +175,6 @@ async function main() {
     },
   });
 
-  // ---------- TRANSACTION ----------
   await prisma.transactionHistory.create({
     data: {
       userId: student1.id,
@@ -179,9 +185,16 @@ async function main() {
     },
   });
 
-  console.log("🌱 Seeding complete");
+  console.log("Seed complete");
+  console.log("Demo logins:");
+  console.log("admin@test.com / password123");
+  console.log("teacher@test.com / password123");
+  console.log("stud1@test.com / password123");
 }
 
 main()
-  .catch(e => console.error(e))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());
