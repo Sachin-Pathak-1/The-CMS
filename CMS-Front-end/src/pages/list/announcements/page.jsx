@@ -3,9 +3,10 @@ import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
-import { Layout } from "../../Layout";
+import { usePagination } from "../../../hooks/usePagination";
 import { apiRequest } from "../../../lib/apiClient";
 import { useAuth } from "../../../contexts/AuthContext";
+import { Pagination } from "../../../components/Pagination";
 
 const formatDisplayDate = (value) => {
     if (!value) return "No date";
@@ -67,10 +68,18 @@ export function AnnouncemetnsListPage() {
         () => getVisibleRows(announcements, { query: combinedQuery, sortAccessor: "title", sortDirection }),
         [announcements, combinedQuery, sortDirection]
     );
+    const {
+        currentPage,
+        pageSize,
+        paginatedData: paginatedAnnouncements,
+        setCurrentPage,
+        totalItems,
+        totalPages,
+    } = usePagination(visibleAnnouncements, { pageSize: 10 });
     const featuredAnnouncement = visibleAnnouncements[0] || null;
 
     return (
-        <Layout>
+        <>
             <div className="m-4 mt-0 flex flex-col gap-6">
                 <section className="hero-panel">
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -108,7 +117,10 @@ export function AnnouncemetnsListPage() {
                             <input
                                 type="text"
                                 value={searchQuery}
-                                onChange={(event) => setSearchQuery(event.target.value)}
+                                onChange={(event) => {
+                                    setCurrentPage(1);
+                                    setSearchQuery(event.target.value);
+                                }}
                                 placeholder="Search announcements..."
                                 className="field-input sm:w-72"
                             />
@@ -118,7 +130,10 @@ export function AnnouncemetnsListPage() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))}
+                                    onClick={() => {
+                                        setCurrentPage(1);
+                                        setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+                                    }}
                                     className="btn-secondary"
                                 >
                                     {sortDirection === "asc" ? "A-Z" : "Z-A"}
@@ -176,7 +191,7 @@ export function AnnouncemetnsListPage() {
                         <aside className="glass-panel p-6">
                             <h3 className="text-lg font-semibold text-slate-800">All current announcements</h3>
                             <div className="mt-5 space-y-3">
-                                {visibleAnnouncements.map((announcement) => (
+                                {paginatedAnnouncements.map((announcement) => (
                                     <div key={announcement.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                                         <div className="flex items-start justify-between gap-3">
                                             <div>
@@ -201,6 +216,13 @@ export function AnnouncemetnsListPage() {
                                     </div>
                                 ))}
                             </div>
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={totalItems}
+                                pageSize={pageSize}
+                                onPageChange={setCurrentPage}
+                            />
                         </aside>
                     </section>
                 ) : null}
@@ -220,12 +242,13 @@ export function AnnouncemetnsListPage() {
                 open={isFilterModalOpen}
                 onClose={() => setIsFilterModalOpen(false)}
                 onApply={(nextQuery) => {
+                    setCurrentPage(1);
                     setFilterQuery(nextQuery);
                     setIsFilterModalOpen(false);
                 }}
                 initialValue={filterQuery}
                 title="Filter Announcements"
             />
-        </Layout>
+        </>
     );
 }
