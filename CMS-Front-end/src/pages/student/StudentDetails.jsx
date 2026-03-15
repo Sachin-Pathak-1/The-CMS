@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Layout } from "../Layout";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { Announcements } from "../../components/Announcements"
 import { BigCalendar } from "../../components/BigCalendar";
@@ -39,27 +38,27 @@ export function StudentDetails () {
 
     if (loading) {
         return (
-            <Layout>
+            <>
                 <div className="p-6 text-sm text-slate-500">Loading student details...</div>
-            </Layout>
+            </>
         );
     }
 
     if (!student) {
         return (
-            <Layout>
+            <>
                 <div className="p-6">
                     <h1 className="text-xl font-semibold">Student not found</h1>
                     <Link to="/list/students" className="mt-3 inline-block text-blue-600">
                         Back to Students List
                     </Link>
                 </div>
-            </Layout>
+            </>
         );
     }
 
     return(
-        <Layout>
+        <>
             <div className="flex flex-1 p-4 flex-col gap-4 md:flex-row">
             {/* LEFT */}
                 <div className="w-full xl:w-2/3">
@@ -151,7 +150,7 @@ export function StudentDetails () {
                     <Announcements />
                 </div>
             </div>
-        </Layout>
+        </>
         
     );
 }
