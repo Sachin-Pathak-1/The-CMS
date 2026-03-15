@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layout } from "../Layout";
 import { getPublicProducts } from "../../services/marketService";
 import { addProductToCart, getCartCount } from "../../services/storeOrderService";
 
@@ -90,7 +89,7 @@ export function StorePage() {
     };
 
     return (
-        <Layout>
+        <>
             <div className="p-4">
                 <section className="hero-panel">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -188,6 +187,6 @@ export function StorePage() {
                     </div>
                 ) : null}
             </div>
-        </Layout>
+        </>
     );
 }
