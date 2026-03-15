@@ -6,7 +6,7 @@ import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
-import { Layout } from "../../Layout";
+import { usePagination } from "../../../hooks/usePagination";
 import { apiRequest } from "../../../lib/apiClient";
 import { useAuth } from "../../../contexts/AuthContext";
 
@@ -98,9 +98,17 @@ export function ClassesListPage() {
         () => getVisibleRows(classes, { query: filterQuery, sortAccessor: "name", sortDirection }),
         [classes, filterQuery, sortDirection]
     );
+    const {
+        currentPage,
+        pageSize,
+        paginatedData: paginatedClasses,
+        setCurrentPage,
+        totalItems,
+        totalPages,
+    } = usePagination(visibleClasses, { pageSize: 10 });
 
     return (
-        <Layout>
+        <>
             <div className="glass-panel-strong m-4 mt-0 flex-1 p-5">
                 <div className="mb-5 flex items-center justify-between">
                     <h1 className="hidden text-lg font-semibold md:block">All Classes</h1>
@@ -117,7 +125,10 @@ export function ClassesListPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"))}
+                                onClick={() => {
+                                    setCurrentPage(1);
+                                    setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
+                                }}
                                 title={`Sort by class name (${sortDirection})`}
                                 className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
                             >
@@ -138,8 +149,14 @@ export function ClassesListPage() {
                 {loading && <p className="mb-3 text-sm text-slate-500">Loading classes...</p>}
                 {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
                 {actionError && <p className="mb-3 text-sm text-rose-600">{actionError}</p>}
-                <Table columns={columns} data={visibleClasses} renderRow={renderClassRow} />
-                <Pagination />
+                <Table columns={columns} data={paginatedClasses} renderRow={renderClassRow} />
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
             {canManageClasses ? (
                 <FormModel
@@ -155,12 +172,13 @@ export function ClassesListPage() {
                 open={isFilterModalOpen}
                 onClose={() => setIsFilterModalOpen(false)}
                 onApply={(nextQuery) => {
+                    setCurrentPage(1);
                     setFilterQuery(nextQuery);
                     setIsFilterModalOpen(false);
                 }}
                 initialValue={filterQuery}
                 title="Filter Classes"
             />
-        </Layout>
+        </>
     );
 }
