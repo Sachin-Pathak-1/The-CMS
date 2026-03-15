@@ -6,7 +6,6 @@ import './App.css'
 import LandingPage from './pages/LandingPage/LandingPage.jsx';
 import FeaturesPage from './pages/LandingPage/FeaturesPage.jsx';
 import { TeacherListPage } from './pages/list/teacher/page.jsx';
-import { ParentListPage } from './pages/list/parent/page.jsx';
 import { StudentListPage } from './pages/list/student/page.jsx';
 import { SubjectListPage } from './pages/list/subject/page.jsx';
 import { ClassesListPage } from './pages/list/classes/page.jsx';
@@ -58,7 +57,6 @@ function App() {
         <Route path="/student" element={<ProtectedRoute allowedRoles={['student']}><StudentPage /></ProtectedRoute>} />
         <Route path="/list/teachers" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><TeacherListPage /></ProtectedRoute>} />
         <Route path="/list/students" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><StudentListPage /></ProtectedRoute>} />
-        <Route path="/list/parents" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><ParentListPage /></ProtectedRoute>} />
         <Route path="/list/subjects" element={<ProtectedRoute allowedRoles={['admin']}><SubjectListPage /></ProtectedRoute>} />
         <Route path="/list/classes" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><ClassesListPage /></ProtectedRoute>} />
         <Route path="/list/lessons" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><LessonsListPage /></ProtectedRoute>} />
