@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Layout } from "../Layout";
 import { apiRequest } from "../../lib/apiClient";
 import { markConversationSeen } from "../../hooks/useChatUnreadCount";
 
@@ -100,7 +99,7 @@ export function ChatPage() {
     };
 
     return (
-        <Layout>
+        <>
             <div className="p-4">
                 <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
                     <h1 className="text-2xl font-semibold text-slate-800">Chat</h1>
@@ -218,6 +217,6 @@ export function ChatPage() {
                     </section>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }
