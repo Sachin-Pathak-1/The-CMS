@@ -30,7 +30,7 @@ const createUser = async (username, email, collegeId, password, avatar) => {
 };
 
 const getUserDetailsByID = async (id) => {
-    return await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
         where: { id },
         select: {
             id: true,
@@ -73,12 +73,6 @@ const getUserDetailsByID = async (id) => {
                     },
                 },
             },
-            wallet: {
-                select: {
-                    id: true,
-                    balance: true,
-                },
-            },
             xp: {
                 select: {
                     xp: true,
@@ -87,6 +81,36 @@ const getUserDetailsByID = async (id) => {
             },
         },
     });
+
+    if (!user) {
+        return null;
+    }
+
+    let wallet = null;
+
+    try {
+        const walletRows = await prisma.$queryRaw`
+            SELECT wallet_id, balance
+            FROM wallet
+            WHERE user_id = ${id}
+            LIMIT 1
+        `;
+
+        if (Array.isArray(walletRows) && walletRows.length > 0) {
+            const row = walletRows[0];
+            wallet = {
+                id: row.wallet_id,
+                balance: row.balance,
+            };
+        }
+    } catch (error) {
+        console.error("Wallet lookup error:", error.message);
+    }
+
+    return {
+        ...user,
+        wallet,
+    };
 };
 
 const getUserDataHandler = async (req, res) => {
@@ -181,4 +205,11 @@ const createTeacher = async (data) => {
     });
 };
 
-export { findUserByEmail, createUser, getUserDetailsByID, getUserDataHandler, getUsersByRole, getUserByName, createTeacher };
+const updateUserPassword = async (userId, password) => {
+    return await prisma.user.update({
+        where: { id: userId },
+        data: { password }
+    });
+};
+
+export { findUserByEmail, createUser, getUserDetailsByID, getUserDataHandler, getUsersByRole, getUserByName, createTeacher, updateUserPassword };
