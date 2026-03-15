@@ -140,21 +140,27 @@ body {
 
 @layer components {
     .app-shell {
-        @apply flex min-h-screen;
+        @apply flex h-screen overflow-hidden;
         background-image:
             radial-gradient(circle at top left, var(--glow), transparent 30%),
             linear-gradient(135deg, var(--shell-from), var(--shell-via) 45%, var(--shell-to));
     }
 
     .app-sidebar {
-        @apply relative border-r backdrop-blur-xl;
+        @apply relative min-h-0 border-r backdrop-blur-xl;
         background: var(--sidebar);
         border-color: var(--sidebar-border);
         box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.15);
+        overflow-y: auto;
+        pointer-events: none;
+    }
+
+    .app-sidebar > div {
+        pointer-events: auto;
     }
 
     .app-main {
-        @apply min-h-screen overflow-y-auto;
+        @apply h-screen min-h-0 min-w-0 overflow-y-auto;
         background: transparent;
     }
 
