@@ -1,3 +1,18 @@
 {
-  "messages": []
+  "messages": [
+    {
+      "id": "msg_1773573703725",
+      "senderId": "c4f33d31-4ba0-4ba9-ae1d-4bf4a380493f",
+      "receiverId": "63a5de28-820e-41b8-b8fc-554532f61979",
+      "body": "Hellooo",
+      "createdAt": "2026-03-15T11:21:43.725Z"
+    },
+    {
+      "id": "msg_1773573785614",
+      "senderId": "63a5de28-820e-41b8-b8fc-554532f61979",
+      "receiverId": "c4f33d31-4ba0-4ba9-ae1d-4bf4a380493f",
+      "body": "Hello sir , dont disturb me",
+      "createdAt": "2026-03-15T11:23:05.614Z"
+    }
+  ]
 }
