@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Layout } from "../Layout";
 import { apiRequest } from "../../lib/apiClient";
 import { useTheme } from "../../contexts/ThemeContext";
 
@@ -117,7 +116,7 @@ export function WalletPage() {
         .reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
     return (
-        <Layout>
+        <>
             <div className="p-4">
                 <section className="relative overflow-hidden rounded-[30px] border border-slate-200 bg-gradient-to-br from-[#fff7dd] via-white to-[#def2ff] p-6 shadow-sm">
                     <div className="pointer-events-none absolute right-6 top-6 hidden opacity-10 md:block">
@@ -288,6 +287,6 @@ export function WalletPage() {
                     </section>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }
