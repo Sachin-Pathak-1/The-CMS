@@ -7,7 +7,7 @@ import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
-import { Layout } from "../../Layout";
+import { usePagination } from "../../../hooks/usePagination";
 
 export function ParentListPage () {
     const { data: parents, setData: setParents, loading, error } = useBackendList("parents");
@@ -73,10 +73,12 @@ export function ParentListPage () {
     };
 
     const handleSortClick = () => {
+        setCurrentPage(1);
         setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
     };
 
     const handleApplyFilter = (nextQuery) => {
+        setCurrentPage(1);
         setFilterQuery(nextQuery);
         setIsFilterModalOpen(false);
     };
@@ -145,9 +147,17 @@ export function ParentListPage () {
         () => getVisibleRows(parents, { query: filterQuery, sortAccessor: "name", sortDirection }),
         [parents, filterQuery, sortDirection]
     );
+    const {
+        currentPage,
+        pageSize,
+        paginatedData: paginatedParents,
+        setCurrentPage,
+        totalItems,
+        totalPages,
+    } = usePagination(visibleParents, { pageSize: 10 });
 
     return(
-        <Layout>
+        <>
             <div className="glass-panel-strong flex-1 p-5 m-4 mt-0">
                 {/* TOP */}
                 <div className="flex items-center justify-between mb-5">
@@ -184,9 +194,15 @@ export function ParentListPage () {
                 {loading && <p className="mb-3 text-sm text-slate-500">Loading parents...</p>}
                 {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
                 {/* LIST */}
-                <Table columns={columns} data={visibleParents} onDelete={handleDeleteParent} renderRow={renderParentRow} />
+                <Table columns={columns} data={paginatedParents} onDelete={handleDeleteParent} renderRow={renderParentRow} />
                 {/* PAGINATION */}
-                <Pagination />
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
             <FormModel
                 open={isAddModalOpen}
@@ -203,7 +219,7 @@ export function ParentListPage () {
                 initialValue={filterQuery}
                 title="Filter Parents"
             />
-        </Layout>
+        </>
     );
 }
 
