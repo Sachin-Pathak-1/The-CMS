@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Layout } from "../Layout";
 import { addProductToCart, checkoutCart, getCartItems, removeCartItem } from "../../services/storeOrderService";
 
 const formatCurrency = (value) =>
@@ -93,7 +92,7 @@ export function OrderPage() {
     };
 
     return (
-        <Layout>
+        <>
             <div className="p-4">
                 <section className="rounded-[28px] border border-slate-200 bg-gradient-to-br from-[#fff6dc] via-white to-[#e4f4ff] p-6 shadow-sm">
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -207,6 +206,6 @@ export function OrderPage() {
                     </section>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }
