@@ -6,7 +6,7 @@ import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
-import { Layout } from "../../Layout";
+import { usePagination } from "../../../hooks/usePagination";
 
 export function AttendanceListPage() {
     const { data: attendance, setData: setAttendance, loading, error } = useBackendList("attendance");
@@ -63,10 +63,12 @@ export function AttendanceListPage() {
     };
 
     const handleSortClick = () => {
+        setCurrentPage(1);
         setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
     };
 
     const handleApplyFilter = (nextQuery) => {
+        setCurrentPage(1);
         setFilterQuery(nextQuery);
         setIsFilterModalOpen(false);
     };
@@ -122,9 +124,17 @@ export function AttendanceListPage() {
         () => getVisibleRows(attendance, { query: filterQuery, sortAccessor: "student", sortDirection }),
         [attendance, filterQuery, sortDirection]
     );
+    const {
+        currentPage,
+        pageSize,
+        paginatedData: paginatedAttendance,
+        setCurrentPage,
+        totalItems,
+        totalPages,
+    } = usePagination(visibleAttendance, { pageSize: 10 });
 
     return (
-        <Layout>
+        <>
             <div className="glass-panel-strong flex-1 p-5 m-4 mt-0">
                 <div className="flex items-center justify-between mb-5">
                     <h1 className="hidden md:block text-lg font-semibold">Attendance</h1>
@@ -162,11 +172,17 @@ export function AttendanceListPage() {
 
                 <Table
                     columns={columns}
-                    data={visibleAttendance}
+                    data={paginatedAttendance}
                     onDelete={handleDeleteAttendance}
                     renderRow={renderAttendanceRow}
                 />
-                <Pagination />
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
 
             <FormModel
@@ -184,7 +200,7 @@ export function AttendanceListPage() {
                 initialValue={filterQuery}
                 title="Filter Attendance"
             />
-        </Layout>
+        </>
     );
 }
 
