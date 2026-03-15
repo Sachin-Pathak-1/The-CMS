@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Layout } from "../Layout";
 import { apiRequest } from "../../lib/apiClient";
 import { uploadFileToCloudinary } from "../../lib/uploadClient";
 
@@ -119,7 +118,7 @@ export function ProfilePage() {
     const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ").trim() || "Profile User";
 
     return (
-        <Layout>
+        <>
             <div className="p-4">
                 <section className="hero-panel mb-4">
                     <span className="page-tag">Profile</span>
@@ -201,6 +200,6 @@ export function ProfilePage() {
                     </form>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }
