@@ -2,8 +2,24 @@ import prisma from "../utils/prisma.js";
 import jwt from 'jsonwebtoken'
 
 const findUserByEmail = async (email) => {
-    return await prisma.user.findUnique({
-        where: { email },
+    return await prisma.user.findFirst({
+        where: {
+            email: {
+                equals: email,
+                mode: "insensitive",
+            },
+        },
+    });
+};
+
+const findUserByUsername = async (username) => {
+    return await prisma.user.findFirst({
+        where: {
+            username: {
+                equals: username,
+                mode: "insensitive",
+            },
+        },
     });
 };
 
@@ -212,4 +228,4 @@ const updateUserPassword = async (userId, password) => {
     });
 };
 
-export { findUserByEmail, createUser, getUserDetailsByID, getUserDataHandler, getUsersByRole, getUserByName, createTeacher, updateUserPassword };
+export { findUserByEmail, findUserByUsername, createUser, getUserDetailsByID, getUserDataHandler, getUsersByRole, getUserByName, createTeacher, updateUserPassword };

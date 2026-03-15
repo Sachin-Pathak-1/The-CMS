@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { z } from "zod";
-import { findUserByEmail, createUser, getUserDetailsByID, updateUserPassword } from "../services/user.service.js";
+import { findUserByEmail, findUserByUsername, createUser, getUserDetailsByID, updateUserPassword } from "../services/user.service.js";
 import dotenv from "dotenv";
 import { generateToken } from "../utils/tokengen.js";
 import { getRandomAvatar } from "../utils/randomavatar.js";
@@ -24,8 +24,12 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email format"),
+  email: z.string().email("Invalid email format").optional(),
+  username: z.string().min(1, "Username is required").optional(),
   password: z.string().min(1, "Password is required")
+}).refine(data => data.email || data.username, {
+  message: "Email or username is required",
+  path: ["email"]
 });
 
 const BCRYPT_HASH_PATTERN = /^\$2[aby]\$\d{2}\$/;
@@ -85,7 +89,15 @@ const login = async (req, res) => {
   try {
     const validated = loginSchema.parse(req.body);
 
-    const user = await findUserByEmail(validated.email);
+    let user =
+      validated.email
+        ? await findUserByEmail(validated.email)
+        : await findUserByUsername(validated.username);
+
+    // Fallback: if both were provided but email lookup failed, try username
+    if (!user && validated.username) {
+      user = await findUserByUsername(validated.username);
+    }
     if (!user) {
       return sendError(res, "Invalid credentials", 401);
     }
