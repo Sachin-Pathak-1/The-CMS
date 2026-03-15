@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { apiRequest } from "../../lib/apiClient";
 import { useAuth } from "../../contexts/AuthContext";
+import { getHomeRoute } from "../../lib/homeRoute";
 
 export function LoginPage() {
     const navigate = useNavigate();
     const { refreshUser } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -31,8 +34,7 @@ export function LoginPage() {
                 return;
             }
 
-            const type = response?.data?.user?.type;
-            navigate(type === "admin" ? "/admin" : type === "teacher" ? "/teacher" : "/student");
+            navigate(getHomeRoute(response?.data?.user?.type));
         } catch (err) {
             setError(err.message || "Login failed");
         } finally {
@@ -98,14 +100,24 @@ export function LoginPage() {
                             </div>
                             <div>
                                 <label className="text-sm font-medium text-slate-700">Password</label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(event) => setPassword(event.target.value)}
-                                    className="mt-2 w-full rounded-2xl border border-slate-200 p-3 outline-none transition focus:border-blue-500"
-                                    placeholder="Enter your password"
-                                    required
-                                />
+                                <div className="relative mt-2">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(event) => setPassword(event.target.value)}
+                                        className="w-full rounded-2xl border border-slate-200 p-3 pr-12 outline-none transition focus:border-blue-500"
+                                        placeholder="Enter your password"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((current) => !current)}
+                                        className="absolute inset-y-0 right-3 inline-flex items-center text-slate-500 transition hover:text-slate-800"
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
 
                             {error ? (
