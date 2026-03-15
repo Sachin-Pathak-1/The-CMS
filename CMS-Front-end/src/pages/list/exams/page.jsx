@@ -1,202 +1,227 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Pagination } from "../../../components/Pagination";
-import { Table } from "../../../components/Table";
-import { TableSearch } from "../../../components/TableSearch";
-import { FormModel } from "../../../components/FormModel";
-import { FilterModal } from "../../../components/FilterModal";
-import { getVisibleRows } from "../../../lib/listUtils";
-import { useBackendList } from "../../../hooks/useBackendList";
-import { usePagination } from "../../../hooks/usePagination";
+import { BookOpen, Trash2, ChevronLeft, ChevronRight, Search, ArrowUpDown } from "lucide-react";
 
-export function ExamsListPage () {
-    const { data: exams, setData: setExams, loading, error } = useBackendList("exams");
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-    const [filterQuery, setFilterQuery] = useState("");
-    const [sortDirection, setSortDirection] = useState("none");
-    const addExamFields = [
-        { name: "subject", placeholder: "Subject" },
-        { name: "class", placeholder: "Class" },
-        { name: "teacher", placeholder: "Teacher" },
-        { name: "date", type: "date", placeholder: "Date" },
-    ];
+const cn = (...classes) => classes.filter(Boolean).join(" ");
 
+const Card = ({ children, className = "" }) => (
+  <div className={cn("bg-white rounded-lg shadow-md border border-rose-200", className)}>{children}</div>
+);
 
-    const columns = [
-        {
-            header:"Subject Name" ,
-            accessor:"subject",
-        },
-        {
-            header:"Class" ,
-            accessor:"class",
-            className: "hidden sm:table-cell",
-            
-        },
-        {
-            header:"Teacher" ,
-            accessor:"teacher",
-            className: "hidden md:table-cell",
-        },
-        {
-            header:"Date" ,
-            accessor:"date",
-            className: "hidden md:table-cell",
-        },
-        {
-            header:"Actions",
-            accessor:"action",   
-        },
-    ]
+const StatsCard = ({ icon: Icon, label, value }) => (
+  <Card className="p-4">
+    <div className="flex items-center gap-4">
+      <div className="p-3 rounded-lg bg-red-100 text-red-600">
+        <Icon size={24} />
+      </div>
+      <div>
+        <p className="text-gray-600 text-sm">{label}</p>
+        <p className="text-2xl font-bold text-gray-800">{value}</p>
+      </div>
+    </div>
+  </Card>
+);
 
-    const handleDeleteExam = (examId) => {
-        setExams((prev) => prev.filter((exam) => exam.id !== examId));
-    };
+const ExamCard = ({ exam, onDelete }) => (
+  <Card className="p-5 hover:shadow-lg transition-shadow duration-200 border-l-4 border-l-red-600">
+    <div className="flex justify-between items-start mb-3">
+      <div className="flex items-start gap-3 flex-1">
+        <div className="p-2 bg-red-100 rounded-lg mt-1">
+          <BookOpen size={20} className="text-red-600" />
+        </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-800 text-lg">{exam.title}</h3>
+          <p className="text-sm text-gray-600 mt-1">{exam.subject}</p>
+        </div>
+      </div>
+      <button
+        onClick={() => {
+          if (window.confirm("Delete this exam?")) onDelete(exam.id);
+        }}
+        className="p-2 hover:bg-red-50 rounded-lg transition-colors text-red-600 hover:text-red-700"
+      >
+        <Trash2 size={18} />
+      </button>
+    </div>
 
-    const handleAddExam = (formData) => {
-        const newExam = {
-            id: exams.length ? Math.max(...exams.map((e) => e.id)) + 1 : 1,
-            subject: formData.subject.trim(),
-            class: formData.class.trim(),
-            teacher: formData.teacher.trim(),
-            date: formData.date,
-        };
+    <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-rose-200">
+      <div>
+        <p className="text-xs text-gray-500 uppercase tracking-wide">Questions</p>
+        <p className="text-lg font-semibold text-gray-800">{exam.questions}</p>
+      </div>
+      <div>
+        <p className="text-xs text-gray-500 uppercase tracking-wide">Duration</p>
+        <p className="text-lg font-semibold text-gray-800">{exam.duration} mins</p>
+      </div>
+    </div>
 
-        setExams((prev) => [newExam, ...prev]);
-        setIsAddModalOpen(false);
-    };
-
-    const handleFilterClick = () => {
-        setIsFilterModalOpen(true);
-    };
-
-    const handleSortClick = () => {
-        setCurrentPage(1);
-        setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
-    };
-
-    const handleApplyFilter = (nextQuery) => {
-        setCurrentPage(1);
-        setFilterQuery(nextQuery);
-        setIsFilterModalOpen(false);
-    };
-
-    const renderExamRow = (row, rowIndex) => (
-        <tr
-            key={row.id}
-            className={`border-t border-slate-100 transition hover:bg-slate-50/80 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
+    <div className="mt-4 pt-4 border-t border-rose-200">
+      <div className="flex items-center justify-between">
+        <span
+          className={cn(
+            "px-3 py-1 rounded-full text-sm font-medium capitalize",
+            exam.status === "active" && "bg-green-100 text-green-700",
+            exam.status === "draft" && "bg-gray-100 text-gray-700",
+            exam.status === "archived" && "bg-red-100 text-red-700"
+          )}
         >
-            {columns.map((col) => {
-                if (col.accessor === "action") {
-                    return (
-                        <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
-                            <div className="flex justify-center gap-3">
-                                <Link to="/">
-                                    <button className="icon-button h-9 w-9">
-                                        <img src="/view.png" width={14} height={14} />
-                                    </button>
-                                </Link>
-                                <button
-                                    type="button"
-                                    onClick={() => handleDeleteExam(row.id)}
-                                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 transition hover:bg-rose-100"
-                                >
-                                    <img src="/delete.png" width={14} height={14} />
-                                </button>
-                            </div>
-                        </td>
-                    );
-                }
+          {exam.status}
+        </span>
+        <span className="text-xs text-gray-500">{exam.level}</span>
+      </div>
+    </div>
+  </Card>
+);
 
-                return (
-                    <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
-                        {row[col.accessor]}
-                    </td>
-                );
-            })}
-        </tr>
+export function ExamsListPage() {
+  const [exams, setExams] = useState([
+    { id: 1, title: "Midterm Math", subject: "Algebra", questions: 50, duration: 90, status: "active", level: "Grade 10" },
+    { id: 2, title: "Physics Practical", subject: "Mechanics", questions: 25, duration: 60, status: "draft", level: "Grade 11" },
+    { id: 3, title: "History Final", subject: "World History", questions: 40, duration: 120, status: "archived", level: "Grade 12" },
+    { id: 4, title: "Chemistry Quiz", subject: "Organic", questions: 20, duration: 45, status: "active", level: "Grade 11" },
+  ]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("title");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const filteredExams = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return exams;
+    return exams.filter(
+      (exam) =>
+        exam.title.toLowerCase().includes(query) ||
+        exam.subject.toLowerCase().includes(query) ||
+        exam.level.toLowerCase().includes(query)
     );
+  }, [exams, searchTerm]);
 
-    const visibleExams = useMemo(
-        () => getVisibleRows(exams, { query: filterQuery, sortAccessor: "subject", sortDirection }),
-        [exams, filterQuery, sortDirection]
-    );
-    const {
-        currentPage,
-        pageSize,
-        paginatedData: paginatedExams,
-        setCurrentPage,
-        totalItems,
-        totalPages,
-    } = usePagination(visibleExams, { pageSize: 10 });
+  const sortedExams = useMemo(() => {
+    const sorted = [...filteredExams];
+    sorted.sort((a, b) => {
+      if (sortBy === "title") return a.title.localeCompare(b.title);
+      if (sortBy === "status") return a.status.localeCompare(b.status);
+      return 0;
+    });
+    return sorted;
+  }, [filteredExams, sortBy]);
 
-    return(
-        <>
-            <div className="glass-panel-strong flex-1 p-5 m-4 mt-0">
-                {/* TOP */}
-                <div className="flex items-center justify-between mb-5">
-                    <h1 className="hidden md:block text-lg font-semibold">All Exams</h1>
-                    <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto ">
-                        <TableSearch />
-                        <div className="flex items-center gap-4 self-end">
-                            <button
-                                type="button"
-                                onClick={handleFilterClick}
-                                title="Filter exams"
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
-                            >
-                                <img src="/filter.png" alt="" width={14} height={14} />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleSortClick}
-                                title={`Sort by subject (${sortDirection})`}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
-                            >
-                                <img src="/sort.png" alt="" width={14} height={14} />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setIsAddModalOpen(true)}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
-                            >
-                                <img src="/plus.png" alt="" width={14} height={14} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                {loading && <p className="mb-3 text-sm text-slate-500">Loading exams...</p>}
-                {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
-                {/* LIST */}
-                <Table columns={columns} data={paginatedExams} onDelete={handleDeleteExam} renderRow={renderExamRow} />
-                {/* PAGINATION */}
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    pageSize={pageSize}
-                    onPageChange={setCurrentPage}
-                />
+  const totalPages = Math.max(1, Math.ceil(sortedExams.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedExams = sortedExams.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleDelete = (id) => {
+    const next = exams.filter((exam) => exam.id !== id);
+    setExams(next);
+    const nextTotalPages = Math.max(1, Math.ceil(next.length / itemsPerPage));
+    if (currentPage > nextTotalPages) setCurrentPage(nextTotalPages);
+  };
+
+  const totalExams = exams.length;
+  const activeExams = exams.filter((e) => e.status === "active").length;
+
+  return (
+    <div className="space-y-8 px-4 py-8 md:px-8">
+      <div className="flex flex-col gap-2 mb-6">
+        <span className="text-xs font-semibold text-rose-600 uppercase tracking-widest">Exams Management</span>
+        <h1 className="text-4xl font-bold text-gray-800">Exams</h1>
+        <p className="text-gray-600">Plan, track, and review exams</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <StatsCard icon={BookOpen} label="Total Exams" value={totalExams} />
+        <StatsCard icon={BookOpen} label="Active" value={activeExams} />
+      </div>
+
+      <Card className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="flex-1 relative">
+          <Search size={18} className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search exams..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-100 outline-none transition"
+          />
+        </div>
+        <button
+          onClick={() => setSortBy(sortBy === "title" ? "status" : "title")}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition"
+        >
+          <ArrowUpDown size={16} /> Sort by {sortBy === "title" ? "status" : "title"}
+        </button>
+      </Card>
+
+      <div className="space-y-4">
+        {paginatedExams.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginatedExams.map((exam) => (
+                <ExamCard key={exam.id} exam={exam} onDelete={handleDelete} />
+              ))}
             </div>
-            <FormModel
-                open={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                onSubmit={handleAddExam}
-                title="Add Exam"
-                submitLabel="Add Exam"
-                fields={addExamFields}
-            />
-            <FilterModal
-                open={isFilterModalOpen}
-                onClose={() => setIsFilterModalOpen(false)}
-                onApply={handleApplyFilter}
-                initialValue={filterQuery}
-                title="Filter Exams"
-            />
-        </>
-    );
+
+            {totalPages > 1 && (
+              <Card className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors",
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-red-100 text-red-600 hover:bg-red-200"
+                    )}
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={cn(
+                          "w-9 h-9 rounded-lg font-medium transition-colors",
+                          page === currentPage
+                            ? "bg-red-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-rose-200"
+                        )}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className={cn(
+                      "p-2 rounded-lg transition-colors",
+                      currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-red-100 text-red-600 hover:bg-red-200"
+                    )}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </Card>
+            )}
+          </>
+        ) : (
+          <Card className="p-12 text-center">
+            <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">No Exams Found</h3>
+            <p className="text-gray-600">Try adjusting your search filters</p>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
 }
 
-
-
+export default ExamsListPage;
