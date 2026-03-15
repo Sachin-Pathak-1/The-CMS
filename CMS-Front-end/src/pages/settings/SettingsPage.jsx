@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Layout } from "../Layout";
 
 export function SettingsPage() {
     const [settings, setSettings] = useState({
@@ -51,7 +50,7 @@ export function SettingsPage() {
     };
 
     return (
-        <Layout>
+        <>
             <div className="p-4">
                 <section className="hero-panel mb-4">
                     <span className="page-tag">Settings</span>
@@ -162,6 +161,6 @@ export function SettingsPage() {
                     </form>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }
