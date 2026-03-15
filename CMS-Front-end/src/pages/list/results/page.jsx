@@ -7,7 +7,7 @@ import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
-import { Layout } from "../../Layout";
+import { usePagination } from "../../../hooks/usePagination";
 
 export function ResultsListPage () {
     const { data: results, setData: setResults, loading, error } = useBackendList("results");
@@ -87,10 +87,12 @@ export function ResultsListPage () {
     };
 
     const handleSortClick = () => {
+        setCurrentPage(1);
         setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
     };
 
     const handleApplyFilter = (nextQuery) => {
+        setCurrentPage(1);
         setFilterQuery(nextQuery);
         setIsFilterModalOpen(false);
     };
@@ -135,9 +137,17 @@ export function ResultsListPage () {
         () => getVisibleRows(results, { query: filterQuery, sortAccessor: "subject", sortDirection }),
         [results, filterQuery, sortDirection]
     );
+    const {
+        currentPage,
+        pageSize,
+        paginatedData: paginatedResults,
+        setCurrentPage,
+        totalItems,
+        totalPages,
+    } = usePagination(visibleResults, { pageSize: 10 });
 
     return(
-        <Layout>
+        <>
             <div className="glass-panel-strong flex-1 p-5 m-4 mt-0">
                 {/* TOP */}
                 <div className="flex items-center justify-between mb-5">
@@ -174,9 +184,15 @@ export function ResultsListPage () {
                 {loading && <p className="mb-3 text-sm text-slate-500">Loading results...</p>}
                 {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
                 {/* LIST */}
-                <Table columns={columns} data={visibleResults} onDelete={handleDeleteResult} renderRow={renderResultRow} />
+                <Table columns={columns} data={paginatedResults} onDelete={handleDeleteResult} renderRow={renderResultRow} />
                 {/* PAGINATION */}
-                <Pagination />
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
             <FormModel
                 open={isAddModalOpen}
@@ -193,7 +209,7 @@ export function ResultsListPage () {
                 initialValue={filterQuery}
                 title="Filter Results"
             />
-        </Layout>
+        </>
     );
 }
 
