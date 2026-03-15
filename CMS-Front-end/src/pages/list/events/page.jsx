@@ -7,7 +7,7 @@ import { FormModel } from "../../../components/FormModel";
 import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
-import { Layout } from "../../Layout";
+import { usePagination } from "../../../hooks/usePagination";
 
 export function EventsListPage () {
     const { data: events, setData: setEvents, loading, error } = useBackendList("events");
@@ -79,10 +79,12 @@ export function EventsListPage () {
     };
 
     const handleSortClick = () => {
+        setCurrentPage(1);
         setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
     };
 
     const handleApplyFilter = (nextQuery) => {
+        setCurrentPage(1);
         setFilterQuery(nextQuery);
         setIsFilterModalOpen(false);
     };
@@ -127,9 +129,17 @@ export function EventsListPage () {
         () => getVisibleRows(events, { query: filterQuery, sortAccessor: "title", sortDirection }),
         [events, filterQuery, sortDirection]
     );
+    const {
+        currentPage,
+        pageSize,
+        paginatedData: paginatedEvents,
+        setCurrentPage,
+        totalItems,
+        totalPages,
+    } = usePagination(visibleEvents, { pageSize: 10 });
 
     return(
-        <Layout>
+        <>
             <div className="glass-panel-strong flex-1 p-5 m-4 mt-0">
                 {/* TOP */}
                 <div className="flex items-center justify-between mb-5">
@@ -166,9 +176,15 @@ export function EventsListPage () {
                 {loading && <p className="mb-3 text-sm text-slate-500">Loading events...</p>}
                 {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
                 {/* LIST */}
-                <Table columns={columns} data={visibleEvents} onDelete={handleDeleteEvent} renderRow={renderEventRow} />
+                <Table columns={columns} data={paginatedEvents} onDelete={handleDeleteEvent} renderRow={renderEventRow} />
                 {/* PAGINATION */}
-                <Pagination />
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                />
             </div>
             <FormModel
                 open={isAddModalOpen}
@@ -185,7 +201,7 @@ export function EventsListPage () {
                 initialValue={filterQuery}
                 title="Filter Events"
             />
-        </Layout>
+        </>
     );
 }
 
