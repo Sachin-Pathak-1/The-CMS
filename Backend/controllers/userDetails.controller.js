@@ -20,7 +20,11 @@ const createDetailsSchema = z.object({
     }, { message: 'User must be at least 13 years old' }),
     phone: z.string().max(15).optional(),
     avatar: z.string().url().optional(),
-    addressId: z.number().int().positive().optional()
+    addressId: z.number().int().positive().optional(),
+    bio: z.string().max(500).optional(),
+    linkedin: z.string().url().optional(),
+    github: z.string().url().optional(),
+    portfolio: z.string().url().optional()
 });
 
 const updateDetailsSchema = createDetailsSchema.partial();

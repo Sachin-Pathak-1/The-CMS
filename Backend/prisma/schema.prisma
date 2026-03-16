@@ -61,12 +61,40 @@ model UserDetails {
   dob        DateTime @db.Date
   phone      String?  @db.VarChar(15)
   addressId  Int?     @map("address_id")
+  bio        String?  @db.VarChar(500)
+  linkedin   String?  @db.VarChar(255)
+  github     String?  @db.VarChar(255)
+  portfolio  String?  @db.VarChar(255)
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
   address    Address? @relation(fields: [addressId], references: [id])
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_details")
+}
+
+model UserSettings {
+  id                   Int      @id @default(autoincrement())
+  userId               String   @unique @map("user_id")
+  notificationsEmail   Boolean  @default(true)  @map("notifications_email")
+  notificationsSMS     Boolean  @default(false) @map("notifications_sms")
+  gradeNotifications   Boolean  @default(true)  @map("grade_notifications")
+  assignmentReminders  Boolean  @default(true)  @map("assignment_reminders")
+  weeklyDigest         Boolean  @default(true)  @map("weekly_digest")
+  profileVisibility    String   @default("college") @map("profile_visibility") @db.VarChar(20)
+  showEmail            Boolean  @default(false) @map("show_email")
+  showPhone            Boolean  @default(false) @map("show_phone")
+  allowMessaging       Boolean  @default(true)  @map("allow_messaging")
+  theme                String   @default("light") @db.VarChar(10)
+  compactMode          Boolean  @default(false) @map("compact_mode")
+  language             String   @default("English") @db.VarChar(50)
+  timezone             String   @default("Asia/Kolkata") @db.VarChar(100)
+  twoFactorEnabled     Boolean  @default(false) @map("two_factor_enabled")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
 }
 
 model Address {
@@ -137,6 +165,66 @@ model Submission {
   @@index([assignmentId])
   @@index([userId])
   @@map("submission")
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement())
+  userId    String   @map("user_id")
+  courseId  Int?     @map("course_id")
+  status    String   @db.VarChar(16)
+  date      DateTime @db.Date
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User    @relation(fields: [userId], references: [id])
+  course Course? @relation(fields: [courseId], references: [id])
+
+  @@index([userId])
+  @@index([courseId])
+  @@map("attendance")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    String   @map("user_id")
+  revoked   Boolean  @default(false)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_token")
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset")
+}
+
+model Admission {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(120)
+  email      String   @db.VarChar(120)
+  phone      String?  @db.VarChar(20)
+  courseId   Int?     @map("course_id")
+  status     String   @default("pending") @db.VarChar(20)
+  notes      String?  @db.VarChar(500)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  course Course? @relation(fields: [courseId], references: [id])
+
+  @@index([courseId])
+  @@map("admission")
 }
 
 model Grade {

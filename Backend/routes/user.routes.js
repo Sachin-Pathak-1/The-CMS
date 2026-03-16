@@ -6,6 +6,7 @@ import {
 } from '../controllers/user_management.controller.js';
 import { editUser, removeUser, dailyClaim } from '../controllers/user_actions.controller.js';
 import { createDetails, getMyDetails, updateMyDetails, getUserDetails } from '../controllers/userDetails.controller.js';
+import { getMySettings, upsertMySettings } from '../controllers/userSettings.controller.js';
 import verifyToken from '../middleware/auth.middleware.js';
 import authorize from '../middleware/authorize.js';
 
@@ -20,6 +21,9 @@ router.post('/me/details', verifyToken, createDetails);
 router.get('/me/details', verifyToken, getMyDetails);
 router.put('/me/details', verifyToken, updateMyDetails);
 router.get('/:id/details', verifyToken, authorize('teacher', 'admin'), getUserDetails);
+// User settings
+router.get('/me/settings', verifyToken, getMySettings);
+router.put('/me/settings', verifyToken, upsertMySettings);
 
 // Student endpoints
 router.get('/students', verifyToken, authorize('teacher', 'admin', 'staff'), getStudents);
