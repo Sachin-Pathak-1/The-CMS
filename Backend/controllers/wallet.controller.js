@@ -4,6 +4,7 @@ import { sendSuccess, sendCreated, sendError } from "../utils/response.js";
 import { createAuditLog } from "../utils/auditLog.js";
 import prisma from "../utils/prisma.js";
 import bcrypt from "bcrypt";
+import { creditWallet } from "../services/wallet.service.js";
 
 const setupPinSchema = z.object({
     pin: z.string().length(6).regex(/^\d+$/, 'PIN must be 6 digits')
@@ -19,6 +20,16 @@ const transferSchema = z.object({
     amount: z.number().positive(),
     note: z.string().max(255).optional(),
     pin: z.string().length(6)
+});
+
+const topUpSchema = z.object({
+    userId: z.string().uuid().optional(),
+    username: z.string().optional(),
+    amount: z.number().positive(),
+    note: z.string().max(255).optional(),
+}).refine((data) => data.userId || data.username, {
+    path: ["userId"],
+    message: "userId or username required",
 });
 
 // GET /wallet/me
@@ -153,6 +164,31 @@ export const transferHandler = async (req, res) => {
     } catch (error) {
         if (error.name === 'ZodError') return sendError(res, 'Validation failed', 400, error.errors.map(e => ({ field: e.path.join('.'), message: e.message })));
         return sendError(res, error.message, 400);
+    }
+};
+
+// POST /wallet/topup (admin/teacher)
+export const topUpHandler = async (req, res) => {
+    try {
+        const validated = topUpSchema.parse(req.body);
+        let userId = validated.userId;
+        if (!userId && validated.username) {
+            const user = await prisma.user.findUnique({ where: { username: validated.username } });
+            if (!user) return sendError(res, "User not found", 404);
+            userId = user.id;
+        }
+
+        const wallet = await creditWallet(userId, validated.amount, validated.note || "Manual top-up");
+        await createAuditLog(req.user.id, 'FINANCE', 'TOP_UP', 'Wallet', wallet.id, {
+            amount: validated.amount,
+            targetUser: userId
+        });
+
+        return sendSuccess(res, { balance: wallet.balance }, "Wallet topped up");
+    } catch (error) {
+        if (error.name === 'ZodError') return sendError(res, 'Validation failed', 400, error.errors.map(e => ({ field: e.path.join('.'), message: e.message })));
+        console.error(error);
+        return sendError(res, error.message || 'Failed to top up wallet', 500);
     }
 };
 

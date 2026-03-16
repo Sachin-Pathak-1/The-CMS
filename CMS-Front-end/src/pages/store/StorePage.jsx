@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getPublicProducts } from "../../services/marketService";
 import { addProductToCart, getCartCount } from "../../services/storeOrderService";
+import { Card, CardHeader, SectionHeader, InfoBox } from "../../lib/designSystem";
+import { ShoppingCart, Search } from "lucide-react";
 
 export function StorePage() {
     const navigate = useNavigate();
@@ -71,9 +73,6 @@ export function StorePage() {
         return rows;
     }, [products, query, category, sortBy]);
 
-    const formatCurrency = (value) =>
-        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
-
     const handleAddToCart = async (product) => {
         try {
             await addProductToCart(product, 1);
@@ -89,35 +88,38 @@ export function StorePage() {
     };
 
     return (
-        <>
-            <div className="p-4">
-                <section className="hero-panel">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <span className="page-tag">Campus Store</span>
-                            <h1 className="mt-4 text-3xl font-semibold text-slate-800">Explore rewards, essentials, and learning gear</h1>
-                            <p className="section-copy max-w-2xl">Browse curated student products, sort by value, and move directly from discovery to wallet checkout.</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => navigate("/order")}
-                            className="btn-primary"
-                        >
-                            Cart Items: {cartCount}
-                        </button>
-                    </div>
+        <div className="space-y-8 px-4 py-8 md:px-8">
+            {/* Header Section */}
+            <div>
+                <span className="inline-flex rounded-full bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                    Campus Store
+                </span>
+                <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-800">
+                    Explore rewards, essentials, and learning gear
+                </h1>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+                    Browse curated student products, sort by value, and move directly from discovery to wallet checkout. Earn points through assignments and activity, then redeem them here.
+                </p>
+            </div>
 
-                    <div className="mt-4 grid gap-3 md:grid-cols-3">
-                        <input
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                            placeholder="Search products..."
-                            className="field-input"
-                        />
+            {/* Filters Section */}
+            <Card className="p-6">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex-1 grid gap-3 md:grid-cols-3">
+                        <div className="relative">
+                            <Search size={18} className="absolute left-3 top-2.5 text-slate-400" />
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(event) => setQuery(event.target.value)}
+                                placeholder="Search products..."
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition"
+                            />
+                        </div>
                         <select
                             value={category}
                             onChange={(event) => setCategory(event.target.value)}
-                            className="field-select"
+                            className="px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition bg-white"
                         >
                             {categories.map((item) => (
                                 <option key={item} value={item}>
@@ -128,7 +130,7 @@ export function StorePage() {
                         <select
                             value={sortBy}
                             onChange={(event) => setSortBy(event.target.value)}
-                            className="field-select"
+                            className="px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition bg-white"
                         >
                             <option value="featured">Featured</option>
                             <option value="price-low">Price: Low to High</option>
@@ -137,56 +139,95 @@ export function StorePage() {
                             <option value="stock">Most In Stock</option>
                         </select>
                     </div>
-                    {loadError ? <p className="mt-3 text-xs text-amber-600">{loadError}</p> : null}
-                </section>
+                    <button
+                        type="button"
+                        onClick={() => navigate("/order")}
+                        className="flex items-center gap-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-slate-700 whitespace-nowrap"
+                    >
+                        <ShoppingCart size={18} />
+                        Cart ({cartCount})
+                    </button>
+                </div>
+                {loadError && (
+                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+                        {loadError}
+                    </div>
+                )}
+            </Card>
 
-                <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {isLoading ? (
-                        <div className="glass-panel col-span-full p-6 text-center text-sm text-slate-500">
-                            Loading products...
-                        </div>
-                    ) : null}
+            {/* Products Grid */}
+            {isLoading ? (
+                <Card className="p-12 text-center">
+                    <div className="inline-block">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                    <p className="mt-3 text-sm text-slate-500">Loading products...</p>
+                </Card>
+            ) : visibleProducts.length === 0 ? (
+                <Card className="p-12 text-center">
+                    <p className="text-slate-600 font-medium">No products found</p>
+                    <p className="text-sm text-slate-500 mt-2">Try adjusting your filters or search query</p>
+                </Card>
+            ) : (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {visibleProducts.map((product) => (
-                        <article key={product.id} className="glass-panel overflow-hidden p-0">
-                            <img src={product.image || product.imageUrl || "/logo.png"} alt={product.name} className="h-48 w-full object-cover" />
-                            <div className="p-4">
-                                <div className="mb-2 flex items-start justify-between gap-2">
-                                    <h2 className="text-base font-semibold leading-tight text-slate-800">{product.name}</h2>
-                                    <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">{product.category || "General"}</span>
+                        <Card key={product.id} className="p-0 overflow-hidden flex flex-col group hover:shadow-md transition">
+                            <div className="relative overflow-hidden bg-slate-100 h-48 w-full">
+                                <img
+                                    src={product.image || product.imageUrl || "/logo.png"}
+                                    alt={product.name}
+                                    className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
+                                    onError={(e) => (e.target.src = "/placeholder.png")}
+                                />
+                                <div className="absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                                    {product.category || "General"}
                                 </div>
-                                <p className="text-sm text-slate-500">{product.description}</p>
-                                <div className="mt-3 flex items-center justify-between text-sm">
-                                    <span className="font-semibold text-sky-700">{formatCurrency(product.price)}</span>
-                                    <span className="text-amber-600">* {product.rating ?? "-"}</span>
+                            </div>
+                            <div className="p-5 flex flex-col flex-1">
+                                <h3 className="text-base font-semibold text-slate-800 line-clamp-2">
+                                    {product.name}
+                                </h3>
+                                <p className="text-sm text-slate-600 mt-2 line-clamp-2">
+                                    {product.description}
+                                </p>
+                                <div className="mt-4 flex items-center justify-between mb-4">
+                                    <span className="text-2xl font-semibold text-slate-900">
+                                        ₹{product.price}
+                                    </span>
+                                    {product.rating && (
+                                        <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
+                                            ★ {product.rating}
+                                        </span>
+                                    )}
                                 </div>
-                                <div className="mt-1 text-xs text-slate-500">Stock: {product.stock}</div>
-                                <div className="mt-3 grid grid-cols-2 gap-2">
+                                {product.stock <= 5 && (
+                                    <p className="text-xs text-rose-600 font-medium mb-3">
+                                        Only {product.stock} left in stock
+                                    </p>
+                                )}
+                                <div className="mt-auto grid grid-cols-2 gap-2">
                                     <button
                                         type="button"
                                         onClick={() => handleAddToCart(product)}
-                                        className="btn-primary rounded-2xl py-2"
+                                        className="rounded-full bg-slate-900 px-4 py-2 text-xs font-medium text-white transition hover:bg-slate-700"
+                                        disabled={product.stock === 0}
                                     >
-                                        Add To Cart
+                                        Add to Cart
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => handleOrderNow(product)}
-                                        className="btn-secondary rounded-2xl py-2"
+                                        className="rounded-full border border-slate-300 px-4 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
+                                        disabled={product.stock === 0}
                                     >
                                         Order Now
                                     </button>
                                 </div>
                             </div>
-                        </article>
+                        </Card>
                     ))}
                 </div>
-
-                {!isLoading && visibleProducts.length === 0 ? (
-                    <div className="glass-panel mt-6 p-6 text-center text-sm text-slate-500">
-                        No products found for the current filters.
-                    </div>
-                ) : null}
-            </div>
-        </>
+            )}
+        </div>
     );
 }

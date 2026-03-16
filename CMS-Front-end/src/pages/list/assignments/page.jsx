@@ -1,23 +1,19 @@
-import { useMemo, useState } from "react";
-import { Search, Plus, Filter, Eye, Trash2, CheckCircle, AlertCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, Plus, Filter, Eye, Trash2, CheckCircle, AlertCircle, Download } from "lucide-react";
+import { useBackendList } from "../../../hooks/useBackendList";
+import { usePagination } from "../../../hooks/usePagination";
+import { getVisibleRows } from "../../../lib/listUtils";
+import { apiRequest } from "../../../lib/apiClient";
+import { FormModel } from "../../../components/FormModel";
+import { useAuth } from "../../../contexts/AuthContext";
+import { Card } from "../../../lib/designSystem";
+import { exportToCsv } from "../../../lib/exportCsv";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl hover:shadow-lg"
-                : "bg-white border-slate-200 shadow-sm hover:shadow-md",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
-
-function StatsCard({ label, value, icon: Icon, color = "blue" }) {
+// Custom StatsCard for assignments page
+function StatsCard({ icon, label, value, color = "blue" }) {
+    const Icon = icon;
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
         cyan: { bg: "from-cyan-600 to-cyan-400", accent: "bg-cyan-100 text-cyan-600" },
@@ -43,33 +39,15 @@ function AssignmentCard({ assignment, onDelete }) {
         return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case "submitted":
-                return "text-green-600 bg-green-50";
-            case "pending":
-                return "text-amber-600 bg-amber-50";
-            case "overdue":
-                return "text-rose-600 bg-rose-50";
-            default:
-                return "text-slate-600 bg-slate-50";
-        }
-    };
-
     return (
         <Card gradient className="p-5 group">
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 truncate text-lg">{assignment.title}</h3>
-                    <p className="text-sm text-slate-500 truncate mt-1">{assignment.subject}</p>
+                    <h3 className="font-semibold text-slate-900 truncate text-lg">{assignment.subject || assignment.title}</h3>
+                    <p className="text-sm text-slate-500 truncate mt-1">{assignment.class || assignment.course?.name || "No class"}</p>
                     <div className="flex items-center gap-2 mt-3">
                         <AlertCircle size={16} className="text-slate-400" />
                         <span className="text-xs text-slate-500">Due: {formatDate(assignment.dueDate)}</span>
-                    </div>
-                    <div className="mt-3">
-                        <span className={cn("inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize", getStatusColor(assignment.status))}>
-                            {assignment.status}
-                        </span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 ms-4">
@@ -93,55 +71,79 @@ function AssignmentCard({ assignment, onDelete }) {
 }
 
 export function AssignmentsListPage() {
-    const [assignments, setAssignments] = useState([
-        { id: 1, title: "Math Problem Set", subject: "Mathematics", dueDate: "2026-03-20", status: "pending" },
-        { id: 2, title: "Physics Lab Report", subject: "Physics", dueDate: "2026-03-18", status: "submitted" },
-        { id: 3, title: "Chemistry Equations", subject: "Chemistry", dueDate: "2026-03-15", status: "overdue" },
-        { id: 4, title: "English Essay", subject: "English", dueDate: "2026-03-25", status: "pending" },
-        { id: 5, title: "History Research", subject: "History", dueDate: "2026-03-22", status: "submitted" },
-        { id: 6, title: "Biology Presentation", subject: "Biology", dueDate: "2026-03-19", status: "pending" },
-        { id: 7, title: "Computer Science Code", subject: "Computer Science", dueDate: "2026-03-23", status: "submitted" },
-        { id: 8, title: "Economics Analysis", subject: "Economics", dueDate: "2026-03-29", status: "pending" },
-        { id: 9, title: "Art Portfolio", subject: "Art", dueDate: "2026-03-17", status: "overdue" },
-        { id: 10, title: "Statistics Project", subject: "Statistics", dueDate: "2026-03-24", status: "submitted" },
-        { id: 11, title: "Psychology Case Study", subject: "Psychology", dueDate: "2026-04-02", status: "pending" },
-        { id: 12, title: "Sociology Survey", subject: "Sociology", dueDate: "2026-03-31", status: "pending" },
-    ]);
-
+    const { data: assignments, loading, error, reload } = useBackendList("assignments");
+    const { user } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [sortDirection, setSortDirection] = useState("none");
     const [searchInput, setSearchInput] = useState("");
-    const [currentPage, setCurrentPage] = useState(0);
-    const pageSize = 9;
+    const [courses, setCourses] = useState([]);
+    const [actionError, setActionError] = useState("");
 
-    const handleDeleteAssignment = (assignmentId) => {
-        if (window.confirm("Are you sure you want to delete this assignment?")) {
-            setAssignments((prev) => prev.filter((assignment) => assignment.id !== assignmentId));
-            if (currentPage > 0 && (assignments.length - 1) % pageSize === 0) {
-                setCurrentPage(currentPage - 1);
-            }
+    const canManageAssignments = user?.type === "admin" || user?.type === "teacher";
+
+    useEffect(() => {
+        apiRequest("/courses")
+            .then((response) => setCourses(Array.isArray(response?.data) ? response.data : []))
+            .catch(() => setCourses([]));
+    }, []);
+
+    const addAssignmentFields = useMemo(() => ([
+        { name: "subject", placeholder: "Title" },
+        {
+            name: "courseId",
+            type: "select",
+            label: "Class / Course",
+            options: courses.map((course) => ({ value: course.id, label: course.name })),
+        },
+        { name: "description", placeholder: "Description", fullWidth: true, required: false },
+        { name: "dueDate", type: "date", placeholder: "Due Date" },
+    ]), [courses]);
+
+    const handleAddAssignment = async (formData) => {
+        try {
+            setActionError("");
+            const courseId = Number(formData.courseId);
+            if (!courseId) throw new Error("Select a valid course");
+
+            await apiRequest("/academic/assignments", {
+                method: "POST",
+                body: JSON.stringify({
+                    title: formData.subject.trim(),
+                    description: formData.description?.trim() || undefined,
+                    courseId,
+                    dueDate: formData.dueDate,
+                }),
+            });
+            setIsAddModalOpen(false);
+            reload();
+        } catch (err) {
+            setActionError(err.message || "Failed to add assignment");
         }
     };
 
-    const filteredAndSortedAssignments = useMemo(() => {
-        let result = assignments.filter((assignment) =>
-            assignment.title.toLowerCase().includes(searchInput.toLowerCase()) ||
-            assignment.subject.toLowerCase().includes(searchInput.toLowerCase())
-        );
-
-        if (sortDirection === "asc") {
-            result.sort((a, b) => a.title.localeCompare(b.title));
-        } else if (sortDirection === "desc") {
-            result.sort((a, b) => b.title.localeCompare(a.title));
+    const handleDeleteAssignment = async (assignmentId) => {
+        if (!canManageAssignments) return;
+        if (!window.confirm("Are you sure you want to delete this assignment?")) return;
+        try {
+            setActionError("");
+            await apiRequest(`/academic/assignments/${assignmentId}`, { method: "DELETE" });
+            reload();
+        } catch (err) {
+            setActionError(err.message || "Failed to delete assignment");
         }
+    };
 
-        return result;
-    }, [assignments, searchInput, sortDirection]);
+    const visibleAssignments = useMemo(
+        () => getVisibleRows(assignments, { query: searchInput, sortAccessor: "subject", sortDirection }),
+        [assignments, searchInput, sortDirection]
+    );
 
-    const totalPages = Math.ceil(filteredAndSortedAssignments.length / pageSize);
-    const paginatedAssignments = filteredAndSortedAssignments.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+    const { currentPage, paginatedData: paginatedAssignments, setCurrentPage, totalPages } = usePagination(
+        visibleAssignments,
+        { pageSize: 9 }
+    );
 
-    const pendingCount = assignments.filter((a) => a.status === "pending").length;
+    const upcomingCount = assignments.filter((a) => (a.dueDate ? new Date(a.dueDate) > new Date() : false)).length;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50/20 p-4 md:p-8">
@@ -154,18 +156,8 @@ export function AssignmentsListPage() {
 
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                <StatsCard
-                    icon={CheckCircle}
-                    label="Total Assignments"
-                    value={assignments.length}
-                    color="blue"
-                />
-                <StatsCard
-                    icon={AlertCircle}
-                    label="Pending Submissions"
-                    value={pendingCount}
-                    color="cyan"
-                />
+                <StatsCard icon={CheckCircle} label="Total Assignments" value={assignments.length} color="blue" />
+                <StatsCard icon={AlertCircle} label="Upcoming Due" value={upcomingCount} color="cyan" />
             </div>
 
             {/* Search & Actions Bar */}
@@ -184,10 +176,17 @@ export function AssignmentsListPage() {
                             className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none transition"
                         />
                     </div>
-                    <div className="flex gap-3 justify-end">
+                    <div className="flex gap-3 flex-wrap justify-end">
+                        <button
+                            onClick={() => exportToCsv("assignments.csv", visibleAssignments)}
+                            className="px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition flex items-center gap-2"
+                        >
+                            <Download size={18} />
+                            Export CSV
+                        </button>
                         <button
                             onClick={() => {
-                                setCurrentPage(0);
+                                setCurrentPage(1);
                                 setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
                             }}
                             className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition flex items-center gap-2"
@@ -195,26 +194,42 @@ export function AssignmentsListPage() {
                             <Filter size={18} />
                             Sort: {sortDirection === "none" ? "Default" : sortDirection === "asc" ? "A-Z" : "Z-A"}
                         </button>
-                        <button
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition flex items-center gap-2"
-                        >
-                            <Plus size={18} />
-                            Add Assignment
-                        </button>
+                        {canManageAssignments && (
+                            <button
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition flex items-center gap-2"
+                            >
+                                <Plus size={18} />
+                                Add Assignment
+                            </button>
+                        )}
                     </div>
                 </div>
             </Card>
 
-            {/* Loading State */}
-            {paginatedAssignments.length === 0 ? (
+            {actionError && (
+                <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 mb-6">
+                    {actionError}
+                </div>
+            )}
+
+            {error && (
+                <Card gradient className="p-6 border-rose-200">
+                    <p className="text-rose-700">Error: {error}</p>
+                </Card>
+            )}
+
+            {loading ? (
+                <div className="text-center py-12">
+                    <p className="text-slate-600">Loading assignments...</p>
+                </div>
+            ) : paginatedAssignments.length === 0 ? (
                 <Card gradient className="p-12 text-center">
                     <CheckCircle size={48} className="mx-auto mb-3 text-slate-400" />
                     <p className="text-slate-500 text-lg">No assignments found</p>
                 </Card>
             ) : (
                 <>
-                    {/* Assignment Cards Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
                         {paginatedAssignments.map((assignment) => (
                             <AssignmentCard
@@ -225,10 +240,9 @@ export function AssignmentsListPage() {
                         ))}
                     </div>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex justify-center gap-2 flex-wrap">
-                            {Array.from({ length: totalPages }, (_, i) => i).map((page) => (
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
@@ -239,12 +253,23 @@ export function AssignmentsListPage() {
                                             : "bg-white border border-slate-200 text-slate-700 hover:border-blue-300"
                                     )}
                                 >
-                                    {page + 1}
+                                    {page}
                                 </button>
                             ))}
                         </div>
                     )}
                 </>
+            )}
+
+            {canManageAssignments && (
+                <FormModel
+                    open={isAddModalOpen}
+                    onClose={() => setIsAddModalOpen(false)}
+                    onSubmit={handleAddAssignment}
+                    title="Add New Assignment"
+                    submitLabel="Add Assignment"
+                    fields={addAssignmentFields}
+                />
             )}
         </div>
     );

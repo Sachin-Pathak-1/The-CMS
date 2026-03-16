@@ -13,6 +13,76 @@
       "receiverId": "c4f33d31-4ba0-4ba9-ae1d-4bf4a380493f",
       "body": "Hello sir , dont disturb me",
       "createdAt": "2026-03-15T11:23:05.614Z"
+    },
+    {
+      "id": "msg_1773647884056",
+      "senderId": "1aee570b-22b8-4f95-af44-ae4abc382094",
+      "receiverId": "29cd1bc7-1443-4fae-8e43-91546da8386f",
+      "body": "Hi sir how much fees is pending?",
+      "mediaUrl": null,
+      "mediaType": null,
+      "fileName": null,
+      "createdAt": "2026-03-16T07:58:04.056Z"
+    },
+    {
+      "id": "msg_1773647924972",
+      "senderId": "1aee570b-22b8-4f95-af44-ae4abc382094",
+      "receiverId": "29cd1bc7-1443-4fae-8e43-91546da8386f",
+      "body": "50k is pending",
+      "mediaUrl": null,
+      "mediaType": null,
+      "fileName": null,
+      "createdAt": "2026-03-16T07:58:44.972Z"
+    },
+    {
+      "id": "msg_1773648286480",
+      "senderId": "1aee570b-22b8-4f95-af44-ae4abc382094",
+      "receiverId": "29cd1bc7-1443-4fae-8e43-91546da8386f",
+      "body": "hi'",
+      "mediaUrl": null,
+      "mediaType": null,
+      "fileName": null,
+      "createdAt": "2026-03-16T08:04:46.480Z"
+    },
+    {
+      "id": "msg_1773648308180",
+      "senderId": "1aee570b-22b8-4f95-af44-ae4abc382094",
+      "receiverId": "a048df1b-7775-4f97-9b44-6c5b2dded311",
+      "body": "hi",
+      "mediaUrl": null,
+      "mediaType": null,
+      "fileName": null,
+      "createdAt": "2026-03-16T08:05:08.180Z"
+    },
+    {
+      "id": "msg_1773648771198",
+      "senderId": "29cd1bc7-1443-4fae-8e43-91546da8386f",
+      "receiverId": "1aee570b-22b8-4f95-af44-ae4abc382094",
+      "body": "hi kiddo",
+      "mediaUrl": null,
+      "mediaType": null,
+      "fileName": null,
+      "createdAt": "2026-03-16T08:12:51.198Z"
+    },
+    {
+      "id": "msg_1773648779004",
+      "senderId": "29cd1bc7-1443-4fae-8e43-91546da8386f",
+      "receiverId": "1aee570b-22b8-4f95-af44-ae4abc382094",
+      "body": "how are you",
+      "mediaUrl": null,
+      "mediaType": null,
+      "fileName": null,
+      "createdAt": "2026-03-16T08:12:59.004Z"
+    },
+    {
+      "id": "msg_1773648820114",
+      "senderId": "29cd1bc7-1443-4fae-8e43-91546da8386f",
+      "receiverId": "a048df1b-7775-4f97-9b44-6c5b2dded311",
+      "body": "Hi teacher, hows the teaching going",
+      "mediaUrl": null,
+      "mediaType": null,
+      "fileName": null,
+      "createdAt": "2026-03-16T08:13:40.114Z"
     }
   ]
 }

@@ -1,4 +1,5 @@
 import prisma from "../utils/prisma.js";
+import bcrypt from "bcrypt";
 
 const transferFunds = async (senderId, recipientWalletId, amount, note, pin) => {
     return await prisma.$transaction(async (tx) => {
@@ -8,7 +9,15 @@ const transferFunds = async (senderId, recipientWalletId, amount, note, pin) => 
         });
 
         if (!senderWallet) throw new Error("Sender wallet not found");
-        if (senderWallet.pin !== pin) throw new Error("Invalid PIN");
+
+        // Support hashed and legacy plain PINs
+        let pinMatch = false;
+        if (senderWallet.pin && senderWallet.pin.length > 6) {
+            pinMatch = await bcrypt.compare(pin, senderWallet.pin);
+        } else {
+            pinMatch = senderWallet.pin === pin;
+        }
+        if (!pinMatch) throw new Error("Invalid PIN");
 
         if (Number(senderWallet.balance) < Number(amount)) {
             throw new Error("Insufficient balance");
@@ -78,4 +87,33 @@ const getWalletDetails = async (userId) => {
     });
 };
 
-export { transferFunds, getTransactionHistory, getWalletDetails };
+const creditWallet = async (userId, amount, note = "") => {
+    return prisma.$transaction(async (tx) => {
+        // Ensure wallet exists
+        let wallet = await tx.wallet.findUnique({ where: { userId } });
+        if (!wallet) {
+            wallet = await tx.wallet.create({
+                data: { userId, balance: 0, pin: "000000" }
+            });
+        }
+
+        const updated = await tx.wallet.update({
+            where: { id: wallet.id },
+            data: { balance: { increment: amount } }
+        });
+
+        await tx.transactionHistory.create({
+            data: {
+                userId,
+                amount,
+                type: 'credit',
+                status: 'success',
+                note: note || 'System credit'
+            }
+        });
+
+        return updated;
+    });
+};
+
+export { transferFunds, getTransactionHistory, getWalletDetails, creditWallet };

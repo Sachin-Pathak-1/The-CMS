@@ -16,6 +16,7 @@ import { ResultsListPage } from './pages/list/results/page.jsx';
 import { AttendanceListPage } from './pages/list/attendance/page.jsx';
 import { EventsListPage } from './pages/list/events/page.jsx';
 import { AnnouncemetnsListPage } from './pages/list/announcements/page.jsx';
+import { AdmissionsListPage } from './pages/list/admissions/page.jsx';
 import { TeacherDetails } from './pages/list/teacher/TeacherDetails.jsx';
 import { StudentDetails } from './pages/student/StudentDetails.jsx';
 import { ProfilePage } from './pages/profile/ProfilePage.jsx';
@@ -29,6 +30,7 @@ import { ChatPage } from './pages/chat/ChatPage.jsx';
 import { AssignmentDetailsPage } from './pages/assignments/AssignmentDetailsPage.jsx';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute.jsx';
 import { Layout } from './pages/Layout.jsx';
+import { TimetablePage } from './pages/timetable/TimetablePage.jsx';
 
 function App() {
   return (
@@ -46,6 +48,7 @@ function App() {
         <Route path="/list/attendance" element={<AttendanceListPage />} />
         <Route path="/list/events" element={<EventsListPage />} />
         <Route path="/list/announcements" element={<AnnouncemetnsListPage />} />
+        <Route path="/timetable" element={<TimetablePage />} />
         <Route path="/store" element={<StorePage />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/order" element={<OrderPage />} />
@@ -60,6 +63,7 @@ function App() {
         <Route path="/list/subjects" element={<ProtectedRoute allowedRoles={['admin']}><SubjectListPage /></ProtectedRoute>} />
         <Route path="/list/classes" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><ClassesListPage /></ProtectedRoute>} />
         <Route path="/list/lessons" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><LessonsListPage /></ProtectedRoute>} />
+        <Route path="/list/admissions" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><AdmissionsListPage /></ProtectedRoute>} />
         <Route path="/teacher/details/:id" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><TeacherDetails /></ProtectedRoute>} />
         <Route path="/student/details/:id" element={<ProtectedRoute allowedRoles={['admin', 'teacher']}><StudentDetails /></ProtectedRoute>} />
       </Route>

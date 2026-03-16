@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useCallback, useEffect, useState } from "react";
 
 export function FormModel({
     open,
@@ -11,19 +12,19 @@ export function FormModel({
 }) {
     const [form, setForm] = useState({});
 
-    const getInitialState = () => {
+    const getInitialState = useCallback(() => {
         const base = {};
         fields.forEach((field) => {
             base[field.name] = initialValues[field.name] ?? "";
         });
         return base;
-    };
+    }, [fields, initialValues]);
 
     useEffect(() => {
         if (open) {
             setForm(getInitialState());
         }
-    }, [open]);
+    }, [open, getInitialState]);
 
     if (!open) return null;
 
@@ -47,18 +48,37 @@ export function FormModel({
                     </button>
                 </div>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    {fields.map((field) => (
-                        <input
-                            key={field.name}
-                            name={field.name}
-                            type={field.type || "text"}
-                            value={form[field.name] || ""}
-                            onChange={handleChange}
-                            placeholder={field.placeholder || field.label || field.name}
-                            required={field.required !== false}
-                            className={`field-input ${field.fullWidth ? "md:col-span-2" : ""}`}
-                        />
-                    ))}
+                    {fields.map((field) => {
+                        const commonProps = {
+                            key: field.name,
+                            name: field.name,
+                            value: form[field.name] || "",
+                            onChange: handleChange,
+                            required: field.required !== false,
+                            className: `field-input ${field.fullWidth ? "md:col-span-2" : ""}`,
+                        };
+
+                        if (field.type === "select") {
+                            return (
+                                <select {...commonProps}>
+                                    <option value="">Select {field.label || field.name}</option>
+                                    {(field.options || []).map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            );
+                        }
+
+                        return (
+                            <input
+                                {...commonProps}
+                                type={field.type || "text"}
+                                placeholder={field.placeholder || field.label || field.name}
+                            />
+                        );
+                    })}
 
                     <div className="mt-2 flex justify-end gap-2 md:col-span-2">
                         <button type="button" onClick={onClose} className="btn-secondary">

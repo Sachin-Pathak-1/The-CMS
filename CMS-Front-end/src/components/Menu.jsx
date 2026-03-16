@@ -63,6 +63,12 @@ const menuItems = [
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
+                icon: "/class.png",
+                label: "Admissions",
+                href: "/list/admissions",
+                visible: ["admin", "teacher"],
+            },
+            {
                 icon: "/finance.png",
                 label: "Wallet",
                 href: "/wallet",
@@ -84,6 +90,12 @@ const menuItems = [
                 icon: "/calendar.png",
                 label: "Events",
                 href: "/list/events",
+                visible: ["admin", "teacher", "student", "parent"],
+            },
+            {
+                icon: "/calendar.png",
+                label: "Timetable",
+                href: "/timetable",
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {

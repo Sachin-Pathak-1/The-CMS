@@ -1,34 +1,17 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Pagination } from "../../../components/Pagination";
-import { Table } from "../../../components/Table";
-import { TableSearch } from "../../../components/TableSearch";
-import { FormModel } from "../../../components/FormModel";
-import { FilterModal } from "../../../components/FilterModal";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
 import { usePagination } from "../../../hooks/usePagination";
-import { Search, Plus, Filter, Eye, Trash2, Users, BookOpen } from "lucide-react";
+import { Card } from "../../../lib/designSystem";
+import { exportToCsv } from "../../../lib/exportCsv";
+import { Search, Filter, Eye, Users, BookOpen } from "lucide-react";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-// Card Component
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl hover:shadow-lg"
-                : "bg-white border-slate-200 shadow-sm hover:shadow-md",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
-
-// Stats Card
-function StatsCard({ label, value, icon: Icon, color = "blue" }) {
+// Custom StatsCard for student list page
+function StatsCard({ icon, label, value, color = "blue" }) {
+    const Icon = icon;
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
         emerald: { bg: "from-emerald-600 to-emerald-400", accent: "bg-emerald-100 text-emerald-600" },
@@ -49,7 +32,7 @@ function StatsCard({ label, value, icon: Icon, color = "blue" }) {
 }
 
 // Student Card
-function StudentCard({ student, onDelete }) {
+function StudentCard({ student }) {
     const getInitials = (name) =>
         name
             .split(" ")
@@ -85,13 +68,6 @@ function StudentCard({ student, onDelete }) {
                             <Eye size={18} className="text-blue-600" />
                         </button>
                     </Link>
-                    <button
-                        onClick={() => onDelete(student.id)}
-                        className="p-2 hover:bg-rose-50 rounded-lg transition"
-                        title="Delete student"
-                    >
-                        <Trash2 size={18} className="text-rose-600" />
-                    </button>
                 </div>
             </div>
             <div className="text-xs text-slate-500 flex justify-between">
@@ -103,45 +79,9 @@ function StudentCard({ student, onDelete }) {
 }
 
 export function StudentListPage() {
-    const { data: students, setData: setStudents, loading, error } = useBackendList("students");
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [filterQuery, setFilterQuery] = useState("");
+    const { data: students, loading, error } = useBackendList("students");
     const [sortDirection, setSortDirection] = useState("none");
     const [searchInput, setSearchInput] = useState("");
-
-    const addStudentFields = [
-        { name: "name", placeholder: "Name" },
-        { name: "email", type: "email", placeholder: "Email" },
-        { name: "studentId", placeholder: "Student ID" },
-        { name: "grade", type: "number", placeholder: "Grade" },
-        { name: "class", placeholder: "Class" },
-        { name: "phone", placeholder: "Phone" },
-        { name: "photo", placeholder: "Photo URL (optional)", required: false, fullWidth: true },
-        { name: "address", placeholder: "Address", fullWidth: true },
-    ];
-
-    const handleDeleteStudent = (studentId) => {
-        if (window.confirm("Are you sure you want to delete this student?")) {
-            setStudents((prev) => prev.filter((student) => student.id !== studentId));
-        }
-    };
-
-    const handleAddStudent = (formData) => {
-        const newStudent = {
-            id: students.length ? Math.max(...students.map((s) => s.id)) + 1 : 1,
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            studentId: formData.studentId.trim(),
-            grade: Number(formData.grade),
-            class: formData.class.trim(),
-            phone: formData.phone.trim(),
-            address: formData.address.trim(),
-            photo: formData.photo.trim(),
-        };
-
-        setStudents((prev) => [newStudent, ...prev]);
-        setIsAddModalOpen(false);
-    };
 
     const visibleStudents = useMemo(
         () => getVisibleRows(students, { query: searchInput, sortAccessor: "name", sortDirection }),
@@ -150,10 +90,8 @@ export function StudentListPage() {
 
     const {
         currentPage,
-        pageSize,
         paginatedData: paginatedStudents,
         setCurrentPage,
-        totalItems,
         totalPages,
     } = usePagination(visibleStudents, { pageSize: 9 });
 
@@ -201,6 +139,12 @@ export function StudentListPage() {
                     </div>
                     <div className="flex gap-3 justify-end">
                         <button
+                            onClick={() => exportToCsv("students.csv", visibleStudents)}
+                            className="px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition"
+                        >
+                            Export CSV
+                        </button>
+                        <button
                             onClick={() => {
                                 setCurrentPage(1);
                                 setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
@@ -209,13 +153,6 @@ export function StudentListPage() {
                         >
                             <Filter size={18} />
                             Sort: {sortDirection === "none" ? "Default" : sortDirection === "asc" ? "A-Z" : "Z-A"}
-                        </button>
-                        <button
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium transition flex items-center gap-2"
-                        >
-                            <Plus size={18} />
-                            Add Student
                         </button>
                     </div>
                 </div>
@@ -246,7 +183,6 @@ export function StudentListPage() {
                             <StudentCard
                                 key={student.id}
                                 student={student}
-                                onDelete={handleDeleteStudent}
                             />
                         ))}
                     </div>
@@ -272,19 +208,6 @@ export function StudentListPage() {
                     )}
                 </>
             )}
-
-            {/* Add Student Modal */}
-            <FormModel
-                open={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                onSubmit={handleAddStudent}
-                title="Add New Student"
-                submitLabel="Add Student"
-                fields={addStudentFields}
-            />
         </div>
     );
 }
-
-
-

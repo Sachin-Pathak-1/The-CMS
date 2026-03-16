@@ -4,7 +4,12 @@ import { sendError, sendSuccess } from "../utils/response.js";
 
 const sendMessageSchema = z.object({
   receiverId: z.string().min(1),
-  body: z.string().min(1).max(2000),
+  body: z.string().max(2000).optional(),
+  mediaUrl: z.string().url().optional(),
+  mediaType: z.string().optional(),
+  fileName: z.string().optional(),
+}).refine(data => data.body || data.mediaUrl, {
+  message: "Either body or media file must be provided"
 });
 
 export const getMembersHandler = async (req, res) => {
@@ -28,7 +33,12 @@ export const getConversationHandler = async (req, res) => {
 export const sendMessageHandler = async (req, res) => {
   try {
     const validated = sendMessageSchema.parse(req.body);
-    const message = await sendMessage(req.user.id, validated.receiverId, validated.body);
+    const message = await sendMessage(req.user.id, validated.receiverId, {
+      body: validated.body || "",
+      mediaUrl: validated.mediaUrl || null,
+      mediaType: validated.mediaType || null,
+      fileName: validated.fileName || null,
+    });
     return sendSuccess(res, message, "Message sent");
   } catch (error) {
     if (error.name === "ZodError") {

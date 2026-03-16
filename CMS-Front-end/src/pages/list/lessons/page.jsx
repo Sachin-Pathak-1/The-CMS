@@ -5,27 +5,14 @@ import { getVisibleRows } from "../../../lib/listUtils";
 import { apiRequest } from "../../../lib/apiClient";
 import { useAuth } from "../../../contexts/AuthContext";
 import { FormModel } from "../../../components/FormModel";
+import { Card } from "../../../lib/designSystem";
 import { Search, Plus, Trash2, Users, BookOpen } from "lucide-react";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div
-            className={cn(
-                "rounded-2xl border transition-all duration-300",
-                gradient
-                    ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl hover:shadow-lg"
-                    : "bg-white border-slate-200 shadow-sm hover:shadow-md",
-                className
-            )}
-        >
-            {children}
-        </div>
-    );
-}
-
-function StatsCard({ label, value, icon: Icon, color = "blue" }) {
+// Custom StatsCard for lessons page
+function StatsCard({ icon, label, value, color = "blue" }) {
+    const Icon = icon;
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
         cyan: { bg: "from-cyan-600 to-cyan-400", accent: "bg-cyan-100 text-cyan-600" },
@@ -33,12 +20,7 @@ function StatsCard({ label, value, icon: Icon, color = "blue" }) {
 
     return (
         <Card gradient className="p-6 group relative overflow-hidden">
-            <div
-                className={cn(
-                    "absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity",
-                    `bg-gradient-to-br ${colorClasses[color].bg}`
-                )}
-            />
+            <div className={cn("absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity", `bg-gradient-to-br ${colorClasses[color].bg}`)} />
             <div className="relative z-10">
                 <div className={cn("w-12 h-12 p-3 rounded-xl mb-3", colorClasses[color].accent)}>
                     <Icon size={24} />
@@ -96,12 +78,17 @@ export function LessonsListPage() {
 
     const canManageLessons = user?.type === "admin" || user?.type === "teacher";
 
-    const addLessonFields = [
+    const addLessonFields = useMemo(() => ([
         { name: "subject", placeholder: "Subject" },
-        { name: "class", placeholder: "Class / Course Name" },
+        {
+            name: "courseId",
+            type: "select",
+            label: "Class / Course",
+            options: courses.map((course) => ({ value: course.id, label: course.name })),
+        },
         { name: "description", placeholder: "Description", fullWidth: true, required: false },
         { name: "dueDate", type: "date", placeholder: "Due Date" },
-    ];
+    ]), [courses]);
 
     useEffect(() => {
         apiRequest("/courses")
@@ -109,18 +96,11 @@ export function LessonsListPage() {
             .catch(() => setCourses([]));
     }, []);
 
-    const resolveCourseId = (courseName) => {
-        const course = courses.find(
-            (item) => item.name.trim().toLowerCase() === courseName.trim().toLowerCase()
-        );
-        return course?.id || null;
-    };
-
     const handleAddLesson = async (formData) => {
         try {
             setActionError("");
-            const courseId = resolveCourseId(formData.class);
-            if (!courseId) throw new Error("Matching class/course was not found");
+            const courseId = Number(formData.courseId);
+            if (!courseId) throw new Error("Select a valid course");
 
             await apiRequest("/academic/assignments", {
                 method: "POST",
@@ -241,10 +221,10 @@ export function LessonsListPage() {
                             {Array.from({ length: totalPages }).map((_, i) => (
                                 <button
                                     key={i}
-                                    onClick={() => setCurrentPage(i)}
+                                    onClick={() => setCurrentPage(i + 1)}
                                     className={cn(
                                         "w-10 h-10 rounded-lg font-medium transition",
-                                        currentPage === i
+                                        currentPage === i + 1
                                             ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
                                             : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
                                     )}

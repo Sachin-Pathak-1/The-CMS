@@ -5,6 +5,7 @@ import {
 } from '../services/grade.service.js';
 import { sendSuccess, sendCreated, sendError } from '../utils/response.js';
 import { createAuditLog } from '../utils/auditLog.js';
+import { creditWallet } from '../services/wallet.service.js';
 
 const gradeSchema = z.object({
     userId: z.string().uuid(),
@@ -24,6 +25,9 @@ export const gradeSubmission = async (req, res) => {
             ...validated,
             gradedBy: req.user.username
         });
+
+        // Reward graded student
+        await creditWallet(validated.userId, 10, "Grade awarded");
 
         await createAuditLog(req.user.id, 'ACADEMIC', 'CREATE', 'Grade', grade.id, { grade: validated.grade });
         return sendCreated(res, grade, 'Graded successfully');

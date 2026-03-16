@@ -45,6 +45,9 @@ const normalizeMessage = (message) => ({
   senderId: message.sender_id || message.senderId,
   receiverId: message.receiver_id || message.receiverId,
   body: message.body,
+  mediaUrl: message.media_url || message.mediaUrl || null,
+  mediaType: message.media_type || message.mediaType || null,
+  fileName: message.file_name || message.fileName || null,
   createdAt: message.created_at || message.createdAt,
 });
 
@@ -128,12 +131,15 @@ export const getConversationMessages = async (userId, memberId) => {
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 };
 
-export const sendMessage = async (senderId, receiverId, body) => {
+export const sendMessage = async (senderId, receiverId, messageData) => {
   const message = {
     id: `msg_${Date.now()}`,
     senderId,
     receiverId,
-    body,
+    body: messageData.body || "",
+    mediaUrl: messageData.mediaUrl || null,
+    mediaType: messageData.mediaType || null,
+    fileName: messageData.fileName || null,
     createdAt: new Date().toISOString(),
   };
 
@@ -147,7 +153,10 @@ export const sendMessage = async (senderId, receiverId, body) => {
       body: JSON.stringify({
         sender_id: senderId,
         receiver_id: receiverId,
-        body,
+        body: messageData.body || "",
+        media_url: messageData.mediaUrl || null,
+        media_type: messageData.mediaType || null,
+        file_name: messageData.fileName || null,
       }),
     });
 

@@ -7,6 +7,7 @@ import { sendSuccess, sendCreated, sendError } from "../utils/response.js";
 import { createAuditLog } from "../utils/auditLog.js";
 import { z } from 'zod';
 import prisma from "../utils/prisma.js";
+import { creditWallet } from "../services/wallet.service.js";
 
 const assignmentSchema = z.object({
     title: z.string().min(1).max(255),
@@ -61,7 +62,7 @@ export const getAssignmentHandler = async (req, res) => {
             where: { id },
             include: {
                 course: { select: { name: true } },
-                submissions: { include: { user: { select: { username: true } } } },
+                submissions: { include: { user: { select: { id: true, username: true } } } },
                 _count: { select: { submissions: true } }
             }
         });
@@ -106,6 +107,8 @@ export const submitAssignmentHandler = async (req, res) => {
     try {
         const validated = submissionSchema.parse(req.body);
         const submission = await submitAssignment(req.user.id, validated);
+        // Reward submission with points
+        await creditWallet(req.user.id, 15, "Assignment submission");
         await createAuditLog(req.user.id, 'ACADEMIC', 'CREATE', 'Submission', submission.id);
         return sendCreated(res, submission, 'Assignment submitted');
     } catch (error) {

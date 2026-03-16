@@ -21,10 +21,7 @@ const FeaturesPage = () => {
         isDarkMode,
         setIsDarkMode,
         isDarkModeUnlocked,
-        coins,
-        setCoins,
-        dailyClaimed,
-        setDailyClaimed
+        coins
     } = useTheme();
 
     // Local state for this page only

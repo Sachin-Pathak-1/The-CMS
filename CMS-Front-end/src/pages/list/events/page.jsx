@@ -2,28 +2,15 @@ import { useMemo, useState } from "react";
 import { usePagination } from "../../../hooks/usePagination";
 import { getVisibleRows } from "../../../lib/listUtils";
 import { useBackendList } from "../../../hooks/useBackendList";
-import { FormModel } from "../../../components/FormModel";
-import { Search, Plus, Trash2, Calendar, Clock, Edit2 } from "lucide-react";
+import { Search, Calendar, Clock } from "lucide-react";
+import { Card } from "../../../lib/designSystem";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div
-            className={cn(
-                "rounded-2xl border transition-all duration-300",
-                gradient
-                    ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl hover:shadow-lg"
-                    : "bg-white border-slate-200 shadow-sm hover:shadow-md",
-                className
-            )}
-        >
-            {children}
-        </div>
-    );
-}
-
-function StatsCard({ label, value, icon: Icon, color = "blue" }) {
+// Custom StatsCard for list pages
+function StatsCard(props) {
+    const { label, value, icon, color = "blue" } = props;
+    const Icon = icon;
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
         purple: { bg: "from-purple-600 to-purple-400", accent: "bg-purple-100 text-purple-600" },
@@ -31,12 +18,7 @@ function StatsCard({ label, value, icon: Icon, color = "blue" }) {
 
     return (
         <Card gradient className="p-6 group relative overflow-hidden">
-            <div
-                className={cn(
-                    "absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity",
-                    `bg-gradient-to-br ${colorClasses[color].bg}`
-                )}
-            />
+            <div className={cn("absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity", `bg-gradient-to-br ${colorClasses[color].bg}`)} />
             <div className="relative z-10">
                 <div className={cn("w-12 h-12 p-3 rounded-xl mb-3", colorClasses[color].accent)}>
                     <Icon size={24} />
@@ -48,7 +30,7 @@ function StatsCard({ label, value, icon: Icon, color = "blue" }) {
     );
 }
 
-function EventCard({ event, onEdit, onDelete, canManage }) {
+function EventCard({ event }) {
     const eventDate = new Date(event.date);
     const formattedDate = eventDate.toLocaleDateString("en-US", {
         weekday: "short",
@@ -58,7 +40,6 @@ function EventCard({ event, onEdit, onDelete, canManage }) {
     });
 
     const isUpcoming = eventDate > new Date();
-    const statusColor = isUpcoming ? "from-emerald-100 to-emerald-50" : "from-slate-100 to-slate-50";
     const statusBadge = isUpcoming ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600";
 
     return (
@@ -70,24 +51,6 @@ function EventCard({ event, onEdit, onDelete, canManage }) {
                         {isUpcoming ? "Upcoming" : "Past"}
                     </p>
                 </div>
-                {canManage && (
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                            onClick={() => onEdit(event)}
-                            className="p-2 hover:bg-blue-50 rounded-lg transition"
-                            title="Edit event"
-                        >
-                            <Edit2 size={18} className="text-blue-600" />
-                        </button>
-                        <button
-                            onClick={() => onDelete(event.id)}
-                            className="p-2 hover:bg-rose-50 rounded-lg transition"
-                            title="Delete event"
-                        >
-                            <Trash2 size={18} className="text-rose-600" />
-                        </button>
-                    </div>
-                )}
             </div>
 
             <div className="space-y-2 pt-4 border-t border-slate-200">
@@ -111,72 +74,11 @@ function EventCard({ event, onEdit, onDelete, canManage }) {
 }
 
 export function EventsListPage() {
-    const { data: events, setData: setEvents, loading, error, reload } = useBackendList("events");
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [editingEvent, setEditingEvent] = useState(null);
+    const { data: events, loading, error } = useBackendList("events");
     const [filterQuery, setFilterQuery] = useState("");
     const [sortDirection, setSortDirection] = useState("desc");
-    const [actionError, setActionError] = useState("");
-    const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-    const addEventFields = [
-        { name: "title", placeholder: "Event Title", required: true },
-        { name: "class", placeholder: "Class / Department", required: true },
-        { name: "date", type: "date", placeholder: "Date", required: true },
-        { name: "startTime", type: "time", placeholder: "Start Time", required: true },
-        { name: "endTime", type: "time", placeholder: "End Time", required: true },
-    ];
 
     const upcomingEventCount = events.filter((e) => new Date(e.date) > new Date()).length;
-
-    const handleAddEvent = (formData) => {
-        try {
-            setActionError("");
-
-            // Validate times
-            if (formData.startTime >= formData.endTime) {
-                setActionError("End time must be after start time");
-                return;
-            }
-
-            const newEvent = {
-                id: events.length ? Math.max(...events.map((e) => e.id)) + 1 : 1,
-                title: formData.title.trim(),
-                class: formData.class.trim(),
-                date: formData.date,
-                startTime: formData.startTime,
-                endTime: formData.endTime,
-            };
-
-            if (editingEvent) {
-                setEvents((prev) =>
-                    prev.map((event) => (event.id === editingEvent.id ? { ...newEvent, id: editingEvent.id } : event))
-                );
-                setEditingEvent(null);
-            } else {
-                setEvents((prev) => [newEvent, ...prev]);
-            }
-
-            setIsAddModalOpen(false);
-        } catch (err) {
-            setActionError(err.message || "Failed to save event");
-        }
-    };
-
-    const handleDeleteEvent = (eventId) => {
-        try {
-            setActionError("");
-            setEvents((prev) => prev.filter((event) => event.id !== eventId));
-            setDeleteConfirm(null);
-        } catch (err) {
-            setActionError(err.message || "Failed to delete event");
-        }
-    };
-
-    const handleEditEvent = (event) => {
-        setEditingEvent(event);
-        setIsAddModalOpen(true);
-    };
 
     const visibleEvents = useMemo(
         () => getVisibleRows(events, { query: filterQuery, sortAccessor: "date", sortDirection }),
@@ -205,35 +107,6 @@ export function EventsListPage() {
                 <StatsCard label="Upcoming Events" value={upcomingEventCount} icon={Clock} color="purple" />
             </div>
 
-            {actionError && (
-                <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
-                    {actionError}
-                </div>
-            )}
-
-            {deleteConfirm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <Card className="p-6 max-w-sm">
-                        <h2 className="text-lg font-semibold text-slate-900 mb-2">Delete Event?</h2>
-                        <p className="text-sm text-slate-600 mb-6">This action cannot be undone.</p>
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => setDeleteConfirm(null)}
-                                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 transition"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => handleDeleteEvent(deleteConfirm)}
-                                className="px-4 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition"
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </Card>
-                </div>
-            )}
-
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex-1">
                     <div className="relative">
@@ -252,15 +125,6 @@ export function EventsListPage() {
                     className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition whitespace-nowrap"
                 >
                     Sort {sortDirection === "asc" ? "↑" : "↓"}
-                </button>
-                <button
-                    onClick={() => {
-                        setEditingEvent(null);
-                        setIsAddModalOpen(true);
-                    }}
-                    className="px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium hover:shadow-lg transition flex items-center gap-2 whitespace-nowrap"
-                >
-                    <Plus size={18} /> Add Event
                 </button>
             </div>
 
@@ -296,13 +160,7 @@ export function EventsListPage() {
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {paginatedEvents.map((event) => (
-                            <EventCard
-                                key={event.id}
-                                event={event}
-                                onEdit={handleEditEvent}
-                                onDelete={(id) => setDeleteConfirm(id)}
-                                canManage={true}
-                            />
+                            <EventCard key={event.id} event={event} />
                         ))}
                     </div>
 
@@ -311,10 +169,10 @@ export function EventsListPage() {
                             {Array.from({ length: totalPages }).map((_, i) => (
                                 <button
                                     key={i}
-                                    onClick={() => setCurrentPage(i)}
+                                    onClick={() => setCurrentPage(i + 1)}
                                     className={cn(
                                         "w-10 h-10 rounded-lg font-medium transition",
-                                        currentPage === i
+                                        currentPage === i + 1
                                             ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
                                             : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
                                     )}
@@ -326,22 +184,6 @@ export function EventsListPage() {
                     )}
                 </>
             )}
-
-            <FormModel
-                open={isAddModalOpen}
-                onClose={() => {
-                    setIsAddModalOpen(false);
-                    setEditingEvent(null);
-                }}
-                onSubmit={handleAddEvent}
-                title={editingEvent ? "Edit Event" : "Add Event"}
-                submitLabel={editingEvent ? "Update Event" : "Add Event"}
-                fields={addEventFields}
-                initialValues={editingEvent}
-            />
         </div>
     );
 }
-
-
-

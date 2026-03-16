@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 import { apiRequest } from "../lib/apiClient";
 
@@ -20,7 +21,9 @@ export function AuthProvider({ children }) {
             const response = await apiRequest("/user/me");
             setUser(response?.data || null);
             return response?.data || null;
-        } catch {
+        } catch (error) {
+            // Only set user to null on explicit error, don't redirect
+            // Let the ProtectedRoute component handle navigation
             setUser(null);
             return null;
         } finally {

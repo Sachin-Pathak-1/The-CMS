@@ -1,25 +1,19 @@
 import { useMemo, useState } from "react";
-import { Search, Plus, Filter, Eye, Trash2, TrendingUp, BarChart3 } from "lucide-react";
+import { Search, Filter, Eye, TrendingUp, BarChart3, Download } from "lucide-react";
+import { useBackendList } from "../../../hooks/useBackendList";
+import { usePagination } from "../../../hooks/usePagination";
+import { getVisibleRows } from "../../../lib/listUtils";
+import { Card } from "../../../lib/designSystem";
+import { exportToCsv } from "../../../lib/exportCsv";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl hover:shadow-lg"
-                : "bg-white border-slate-200 shadow-sm hover:shadow-md",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
-
-function StatsCard({ label, value, icon: Icon, color = "green" }) {
+// Custom StatsCard for results page
+function StatsCard({ icon, label, value, color = "blue" }) {
+    const Icon = icon;
     const colorClasses = {
-        green: { bg: "from-green-600 to-emerald-500", accent: "bg-green-100 text-green-600" },
+        blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
+        green: { bg: "from-green-600 to-green-400", accent: "bg-green-100 text-green-600" },
         emerald: { bg: "from-emerald-600 to-emerald-400", accent: "bg-emerald-100 text-emerald-600" },
     };
 
@@ -37,7 +31,7 @@ function StatsCard({ label, value, icon: Icon, color = "green" }) {
     );
 }
 
-function ResultCard({ result, onDelete }) {
+function ResultCard({ result }) {
     const getGradeColor = (grade) => {
         if (grade >= 90) return "text-green-600 bg-green-50";
         if (grade >= 80) return "text-blue-600 bg-blue-50";
@@ -65,18 +59,8 @@ function ResultCard({ result, onDelete }) {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 ms-4">
-                    <button
-                        className="p-2 hover:bg-green-50 rounded-lg transition"
-                        title="View details"
-                    >
+                    <button className="p-2 hover:bg-green-50 rounded-lg transition" title="View details">
                         <Eye size={18} className="text-green-600" />
-                    </button>
-                    <button
-                        onClick={() => onDelete(result.id)}
-                        className="p-2 hover:bg-rose-50 rounded-lg transition"
-                        title="Delete result"
-                    >
-                        <Trash2 size={18} className="text-rose-600" />
                     </button>
                 </div>
             </div>
@@ -85,55 +69,21 @@ function ResultCard({ result, onDelete }) {
 }
 
 export function ResultsListPage() {
-    const [results, setResults] = useState([
-        { id: 1, studentName: "Alice Johnson", subject: "Mathematics", score: 95, grade: "A+" },
-        { id: 2, studentName: "Bob Smith", subject: "Physics", score: 87, grade: "B+" },
-        { id: 3, studentName: "Carol White", subject: "Chemistry", score: 92, grade: "A" },
-        { id: 4, studentName: "David Brown", subject: "English", score: 78, grade: "C+" },
-        { id: 5, studentName: "Emma Davis", subject: "History", score: 88, grade: "B+" },
-        { id: 6, studentName: "Frank Miller", subject: "Biology", score: 91, grade: "A" },
-        { id: 7, studentName: "Grace Wilson", subject: "Computer Science", score: 96, grade: "A+" },
-        { id: 8, studentName: "Henry Moore", subject: "Economics", score: 82, grade: "B" },
-        { id: 9, studentName: "Ivy Taylor", subject: "Art", score: 85, grade: "B" },
-        { id: 10, studentName: "Jack Anderson", subject: "Statistics", score: 89, grade: "B+" },
-        { id: 11, studentName: "Kate Thomas", subject: "Psychology", score: 93, grade: "A" },
-        { id: 12, studentName: "Liam Jackson", subject: "Sociology", score: 76, grade: "C" },
-    ]);
-
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const { data: results, loading, error } = useBackendList("results");
     const [sortDirection, setSortDirection] = useState("none");
     const [searchInput, setSearchInput] = useState("");
-    const [currentPage, setCurrentPage] = useState(0);
-    const pageSize = 9;
 
-    const handleDeleteResult = (resultId) => {
-        if (window.confirm("Are you sure you want to delete this result?")) {
-            setResults((prev) => prev.filter((result) => result.id !== resultId));
-            if (currentPage > 0 && (results.length - 1) % pageSize === 0) {
-                setCurrentPage(currentPage - 1);
-            }
-        }
-    };
+    const visibleResults = useMemo(
+        () => getVisibleRows(results, { query: searchInput, sortAccessor: "student", sortDirection }),
+        [results, searchInput, sortDirection]
+    );
 
-    const filteredAndSortedResults = useMemo(() => {
-        let result = results.filter((result) =>
-            result.studentName.toLowerCase().includes(searchInput.toLowerCase()) ||
-            result.subject.toLowerCase().includes(searchInput.toLowerCase())
-        );
+    const { currentPage, paginatedData: paginatedResults, setCurrentPage, totalPages } = usePagination(
+        visibleResults,
+        { pageSize: 9 }
+    );
 
-        if (sortDirection === "asc") {
-            result.sort((a, b) => a.studentName.localeCompare(b.studentName));
-        } else if (sortDirection === "desc") {
-            result.sort((a, b) => b.studentName.localeCompare(a.studentName));
-        }
-
-        return result;
-    }, [results, searchInput, sortDirection]);
-
-    const totalPages = Math.ceil(filteredAndSortedResults.length / pageSize);
-    const paginatedResults = filteredAndSortedResults.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
-
-    const averageScore = results.length > 0 ? Math.round(results.reduce((sum, r) => sum + r.score, 0) / results.length) : 0;
+    const averageScore = results.length > 0 ? Math.round(results.reduce((sum, r) => sum + Number(r.score || 0), 0) / results.length) : 0;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-50 to-green-50/20 p-4 md:p-8">
@@ -171,15 +121,22 @@ export function ResultsListPage() {
                             value={searchInput}
                             onChange={(e) => {
                                 setSearchInput(e.target.value);
-                                setCurrentPage(0);
+                                setCurrentPage(1);
                             }}
                             className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none transition"
                         />
                     </div>
-                    <div className="flex gap-3 justify-end">
+                    <div className="flex gap-3 flex-wrap justify-end">
+                        <button
+                            onClick={() => exportToCsv("results.csv", visibleResults)}
+                            className="px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition flex items-center gap-2"
+                        >
+                            <Download size={18} />
+                            Export CSV
+                        </button>
                         <button
                             onClick={() => {
-                                setCurrentPage(0);
+                                setCurrentPage(1);
                                 setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
                             }}
                             className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition flex items-center gap-2"
@@ -187,40 +144,36 @@ export function ResultsListPage() {
                             <Filter size={18} />
                             Sort: {sortDirection === "none" ? "Default" : sortDirection === "asc" ? "A-Z" : "Z-A"}
                         </button>
-                        <button
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium transition flex items-center gap-2"
-                        >
-                            <Plus size={18} />
-                            Add Result
-                        </button>
                     </div>
                 </div>
             </Card>
 
-            {/* Loading State */}
-            {paginatedResults.length === 0 ? (
+            {error && (
+                <Card gradient className="p-6 border-rose-200">
+                    <p className="text-rose-700">Error: {error}</p>
+                </Card>
+            )}
+
+            {loading ? (
+                <div className="text-center py-12">
+                    <p className="text-slate-600">Loading results...</p>
+                </div>
+            ) : paginatedResults.length === 0 ? (
                 <Card gradient className="p-12 text-center">
                     <BarChart3 size={48} className="mx-auto mb-3 text-slate-400" />
                     <p className="text-slate-500 text-lg">No results found</p>
                 </Card>
             ) : (
                 <>
-                    {/* Result Cards Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
                         {paginatedResults.map((result) => (
-                            <ResultCard
-                                key={result.id}
-                                result={result}
-                                onDelete={handleDeleteResult}
-                            />
+                            <ResultCard key={result.id} result={result} />
                         ))}
                     </div>
 
-                    {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="flex justify-center gap-2 flex-wrap">
-                            {Array.from({ length: totalPages }, (_, i) => i).map((page) => (
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <button
                                     key={page}
                                     onClick={() => setCurrentPage(page)}
@@ -231,7 +184,7 @@ export function ResultsListPage() {
                                             : "bg-white border border-slate-200 text-slate-700 hover:border-green-300"
                                     )}
                                 >
-                                    {page + 1}
+                                    {page}
                                 </button>
                             ))}
                         </div>
@@ -241,6 +194,3 @@ export function ResultsListPage() {
         </div>
     );
 }
-
-
-

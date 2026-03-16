@@ -4,7 +4,7 @@ async function testLogin() {
   try {
     console.log('🧪 Testing Login with seed credentials...\n');
 
-    // Test credentials from seed.ts
+    // Test credentials - ensure fix-login-users.js has been run first
     const testCases = [
       {
         name: 'Admin Login',
@@ -56,19 +56,19 @@ async function testLogin() {
     }
 
     console.log('\n📊 Summary:');
-    console.log('Default credentials created during seed:');
+    console.log('Default credentials created by fix-login-users.js:');
     console.log('┌─ Admin');
     console.log('│  Username: admin');
-    console.log('│  Password: password123');
     console.log('│  Email: admin@test.com');
+    console.log('│  Password: password123');
     console.log('├─ Teacher');
     console.log('│  Username: teacher');
-    console.log('│  Password: password123');
     console.log('│  Email: teacher@test.com');
+    console.log('│  Password: password123');
     console.log('└─ Student');
     console.log('   Username: student1');
-    console.log('   Password: password123');
     console.log('   Email: stud1@test.com');
+    console.log('   Password: password123');
 
   } catch (error) {
     console.error('🔴 Test failed:', error.message);

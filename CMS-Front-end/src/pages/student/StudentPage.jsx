@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
     Book,
@@ -17,32 +17,19 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from "recharts";
 import { useAuth } from "../../contexts/AuthContext";
 import { apiRequest } from "../../lib/apiClient";
+import { Card, StatCard } from "../../lib/designSystem";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-// Card Component
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300 hover:shadow-lg",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl"
-                : "bg-white border-slate-200 shadow-sm",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
-
-// Stats Card
-function StatsCard({ icon: Icon, label, value, subtitle, color = "blue" }) {
+// Custom StatsCard with color variants
+function CustomStatsCard({ icon, label, value, subtitle, color = "blue" }) {
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
         emerald: { bg: "from-emerald-600 to-emerald-400", accent: "bg-emerald-100 text-emerald-600" },
         amber: { bg: "from-amber-600 to-amber-400", accent: "bg-amber-100 text-amber-600" },
         purple: { bg: "from-purple-600 to-purple-400", accent: "bg-purple-100 text-purple-600" },
     };
+    const Icon = icon;
 
     return (
         <Card gradient className="p-6 group relative overflow-hidden">
@@ -61,9 +48,10 @@ function StatsCard({ icon: Icon, label, value, subtitle, color = "blue" }) {
 }
 
 // Chart Card
-function ChartCard({ title, subtitle, children, icon: Icon, action }) {
+function ChartCard({ title, subtitle, children, icon, action }) {
+    const Icon = icon;
     return (
-        <Card gradient className="p-6">
+        <Card gradient className="p-6 min-w-0">
             <div className="flex items-start justify-between mb-6">
                 <div className="flex items-start gap-3">
                     <div className="p-2.5 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl">
@@ -137,6 +125,14 @@ export function StudentPage() {
         loadData();
     }, []);
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-slate-600">
+                Loading your student dashboard...
+            </div>
+        );
+    }
+
     // Mock grade data
     const gradeData = [
         { subject: "Math", grade: 85 },
@@ -174,28 +170,28 @@ export function StudentPage() {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                <StatsCard
+                <CustomStatsCard
                     icon={Book}
                     label="Active Assignments"
                     value={assignments.length}
                     subtitle="Upcoming deadlines"
                     color="blue"
                 />
-                <StatsCard
+                <CustomStatsCard
                     icon={TrendingUp}
                     label="GPA"
                     value="3.8"
                     subtitle="Excellent standing"
                     color="emerald"
                 />
-                <StatsCard
+                <CustomStatsCard
                     icon={CheckCircle}
                     label="Attendance"
                     value="95%"
                     subtitle="On track"
                     color="amber"
                 />
-                <StatsCard
+                <CustomStatsCard
                     icon={Zap}
                     label="XP Earned"
                     value="2,450"
@@ -214,8 +210,8 @@ export function StudentPage() {
                         subtitle="Current course performance"
                         icon={Award}
                     >
-                        <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div className="h-80 min-h-[320px] w-full">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={320}>
                                 <BarChart data={gradeData}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                                     <XAxis dataKey="subject" stroke="#94a3b8" style={{ fontSize: '12px' }} />
@@ -233,8 +229,8 @@ export function StudentPage() {
                         subtitle="Weekly score progression"
                         icon={TrendingUp}
                     >
-                        <div className="h-72">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div className="h-72 min-h-[280px] w-full">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
                                 <AreaChart data={performanceData}>
                                     <defs>
                                         <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="1">
@@ -328,4 +324,3 @@ export function StudentPage() {
         </div>
     );
 }
-

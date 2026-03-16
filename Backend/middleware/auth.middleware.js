@@ -9,7 +9,7 @@ const verifyToken = async (req, res, next) => {
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || "dev-secret-change-me");
 
         // Fetch current user type from DB for accurate RBAC
         const user = await prisma.user.findUnique({

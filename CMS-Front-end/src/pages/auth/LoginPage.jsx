@@ -8,21 +8,28 @@ import { getHomeRoute } from "../../lib/homeRoute";
 export function LoginPage() {
     const navigate = useNavigate();
     const { refreshUser } = useAuth();
-    const [email, setEmail] = useState("");
+    const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [resetMessage, setResetMessage] = useState("");
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         setIsLoading(true);
         setError("");
+        setResetMessage("");
 
         try {
+            const payload =
+                identifier.includes("@")
+                    ? { email: identifier.trim(), password }
+                    : { username: identifier.trim(), password };
+
             const response = await apiRequest("/login", {
                 method: "POST",
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify(payload),
             });
 
             await refreshUser();
@@ -39,6 +46,24 @@ export function LoginPage() {
             setError(err.message || "Login failed");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleForgot = async () => {
+        setError("");
+        setResetMessage("");
+        try {
+            const payload = identifier.includes("@")
+                ? { email: identifier.trim() }
+                : { username: identifier.trim() };
+            const response = await apiRequest("/forgot-password", {
+                method: "POST",
+                body: JSON.stringify(payload),
+            });
+            const token = response?.data?.token;
+            setResetMessage(token ? `Reset token (dev): ${token}` : "If the account exists, a reset link was generated.");
+        } catch (err) {
+            setError(err.message || "Failed to start reset");
         }
     };
 
@@ -88,13 +113,13 @@ export function LoginPage() {
 
                         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
                             <div>
-                                <label className="text-sm font-medium text-slate-700">Email</label>
+                                <label className="text-sm font-medium text-slate-700">Email or Username</label>
                                 <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(event) => setEmail(event.target.value)}
+                                    type="text"
+                                    value={identifier}
+                                    onChange={(event) => setIdentifier(event.target.value)}
                                     className="mt-2 w-full rounded-2xl border border-slate-200 p-3 outline-none transition focus:border-blue-500"
-                                    placeholder="Enter your email"
+                                    placeholder="e.g. admin@test.com or admin"
                                     required
                                 />
                             </div>
@@ -125,6 +150,11 @@ export function LoginPage() {
                                     {error}
                                 </div>
                             ) : null}
+                            {resetMessage ? (
+                                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 break-words">
+                                    {resetMessage}
+                                </div>
+                            ) : null}
 
                             <button
                                 type="submit"
@@ -132,6 +162,13 @@ export function LoginPage() {
                                 className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {isLoading ? "Signing in..." : "Login"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleForgot}
+                                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                            >
+                                Forgot password?
                             </button>
                         </form>
                     </section>

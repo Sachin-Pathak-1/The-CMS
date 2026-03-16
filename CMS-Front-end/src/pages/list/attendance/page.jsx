@@ -1,35 +1,31 @@
 import { useMemo, useState } from "react";
 import { Search, Plus, Filter, Eye, Trash2, Calendar, Clock } from "lucide-react";
+import { exportToCsv } from "../../../lib/exportCsv";
+import { Card } from "../../../lib/designSystem";
+import { useBackendList } from "../../../hooks/useBackendList";
+import { useAuth } from "../../../contexts/AuthContext";
+import { FormModel } from "../../../components/FormModel";
+import { apiRequest } from "../../../lib/apiClient";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl hover:shadow-lg"
-                : "bg-white border-slate-200 shadow-sm hover:shadow-md",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
-
-function StatsCard({ label, value, icon, color = "amber" }) {
+// Custom StatsCard for attendance page
+function StatsCard({ icon, label, value, color = "blue" }) {
     const Icon = icon;
     const colorClasses = {
-        amber: { bg: "from-amber-600 to-yellow-500", accent: "bg-amber-100 text-amber-600" },
-        yellow: { bg: "from-yellow-600 to-yellow-400", accent: "bg-yellow-100 text-yellow-600" },
+        blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
+        emerald: { bg: "from-emerald-600 to-emerald-400", accent: "bg-emerald-100 text-emerald-600" },
+        amber: { bg: "from-amber-600 to-amber-400", accent: "bg-amber-100 text-amber-600" },
+        yellow: { bg: "from-yellow-500 to-amber-400", accent: "bg-yellow-100 text-amber-600" },
     };
+    const palette = colorClasses[color] || colorClasses.blue;
 
     return (
         <Card gradient className="p-6 group relative overflow-hidden">
-            <div className={cn("absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity", `bg-gradient-to-br ${colorClasses[color].bg}`)} />
+            <div className={cn("absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity", `bg-gradient-to-br ${palette.bg}`)} />
             <div className="relative z-10">
-                <div className={cn("w-12 h-12 p-3 rounded-xl mb-3", colorClasses[color].accent)}>
-                    {Icon && <Icon size={24} />}
+                <div className={cn("w-12 h-12 p-3 rounded-xl mb-3", palette.accent)}>
+                    <Icon size={24} />
                 </div>
                 <p className="text-slate-600 text-sm font-medium mb-1">{label}</p>
                 <p className="text-3xl font-bold text-slate-900">{value}</p>
@@ -94,40 +90,72 @@ function AttendanceCard({ record, onDelete }) {
 }
 
 export function AttendanceListPage() {
-    const [attendance, setAttendance] = useState([
-        { id: 1, studentName: "Alice Johnson", class: "10A", date: "2026-03-15", status: "Present" },
-        { id: 2, studentName: "Bob Smith", class: "10A", date: "2026-03-15", status: "Late" },
-        { id: 3, studentName: "Carol White", class: "10B", date: "2026-03-15", status: "Present" },
-        { id: 4, studentName: "David Brown", class: "10A", date: "2026-03-15", status: "Absent" },
-        { id: 5, studentName: "Emma Davis", class: "10B", date: "2026-03-15", status: "Present" },
-        { id: 6, studentName: "Frank Miller", class: "10A", date: "2026-03-15", status: "Present" },
-        { id: 7, studentName: "Grace Wilson", class: "10C", date: "2026-03-15", status: "Late" },
-        { id: 8, studentName: "Henry Moore", class: "10B", date: "2026-03-15", status: "Present" },
-        { id: 9, studentName: "Ivy Taylor", class: "10A", date: "2026-03-15", status: "Present" },
-        { id: 10, studentName: "Jack Anderson", class: "10C", date: "2026-03-15", status: "Absent" },
-        { id: 11, studentName: "Kate Thomas", class: "10B", date: "2026-03-15", status: "Present" },
-        { id: 12, studentName: "Liam Jackson", class: "10A", date: "2026-03-15", status: "Present" },
-    ]);
+    const { data: attendance, setData: setAttendance, loading } = useBackendList("attendance");
+    const { user } = useAuth();
 
     const [sortDirection, setSortDirection] = useState("none");
     const [searchInput, setSearchInput] = useState("");
     const [currentPage, setCurrentPage] = useState(0);
     const pageSize = 9;
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-    const handleDeleteAttendance = (recordId) => {
-        if (window.confirm("Are you sure you want to delete this attendance record?")) {
+    const handleDeleteAttendance = async (recordId) => {
+        if (user?.type !== "admin" && user?.type !== "teacher") return;
+        if (!window.confirm("Are you sure you want to delete this attendance record?")) return;
+        try {
+            await apiRequest(`/attendance/${recordId}`, { method: "DELETE" });
             setAttendance((prev) => prev.filter((record) => record.id !== recordId));
             if (currentPage > 0 && (attendance.length - 1) % pageSize === 0) {
                 setCurrentPage(currentPage - 1);
             }
+        } catch (err) {
+            alert(err.message || "Failed to delete attendance");
+        }
+    };
+
+    const addAttendanceFields = [
+        { name: "student", placeholder: "Student name" },
+        { name: "class", placeholder: "Class" },
+        { name: "date", type: "date", placeholder: "Date" },
+        { name: "status", placeholder: "Status (Present/Late/Absent)" },
+    ];
+
+    const handleAddAttendance = async (formData) => {
+        try {
+            const payload = {
+                username: formData.student.trim(),
+                courseId: formData.class ? Number(formData.class) : undefined,
+                date: formData.date,
+                status: (formData.status || "Present").trim(),
+            };
+            const response = await apiRequest("/attendance", {
+                method: "POST",
+                body: JSON.stringify(payload),
+            });
+            const record = response?.data
+                ? {
+                    id: response.data.id,
+                    studentName: formData.student.trim(),
+                    class: formData.class || "N/A",
+                    date: formData.date,
+                    status: payload.status,
+                }
+                : null;
+            setAttendance((prev) => (record ? [record, ...prev] : prev));
+            setIsAddModalOpen(false);
+            setCurrentPage(0);
+        } catch (err) {
+            alert(err.message || "Failed to add attendance");
         }
     };
 
     const filteredAndSortedRecords = useMemo(() => {
-        let result = attendance.filter((record) =>
-            record.studentName.toLowerCase().includes(searchInput.toLowerCase()) ||
-            record.class.toLowerCase().includes(searchInput.toLowerCase())
-        );
+        const query = (searchInput || "").toLowerCase();
+        let result = attendance.filter((record) => {
+            const name = record.studentName || record.student || "";
+            const className = record.class || record.course || "";
+            return name.toLowerCase().includes(query) || className.toLowerCase().includes(query);
+        });
 
         if (sortDirection === "asc") {
             result.sort((a, b) => a.studentName.localeCompare(b.studentName));
@@ -185,7 +213,13 @@ export function AttendanceListPage() {
                             className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 outline-none transition"
                         />
                     </div>
-                    <div className="flex gap-3 justify-end">
+                    <div className="flex gap-3 flex-wrap justify-end">
+                        <button
+                            onClick={() => exportToCsv("attendance.csv", filteredAndSortedRecords)}
+                            className="px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition"
+                        >
+                            Export CSV
+                        </button>
                         <button
                             onClick={() => {
                                 setCurrentPage(0);
@@ -196,18 +230,26 @@ export function AttendanceListPage() {
                             <Filter size={18} />
                             Sort: {sortDirection === "none" ? "Default" : sortDirection === "asc" ? "A-Z" : "Z-A"}
                         </button>
-                        <button
-                            className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium transition flex items-center gap-2"
-                        >
-                            <Plus size={18} />
-                            Add Record
-                        </button>
+                        {(user?.type === "teacher" || user?.type === "admin") && (
+                            <button
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-medium transition flex items-center gap-2"
+                            >
+                                <Plus size={18} />
+                                Add Record
+                            </button>
+                        )}
                     </div>
                 </div>
             </Card>
 
             {/* Loading State */}
-            {paginatedRecords.length === 0 ? (
+            {loading ? (
+                <Card gradient className="p-12 text-center">
+                    <Calendar size={48} className="mx-auto mb-3 text-slate-400" />
+                    <p className="text-slate-500 text-lg">Loading attendance...</p>
+                </Card>
+            ) : paginatedRecords.length === 0 ? (
                 <Card gradient className="p-12 text-center">
                     <Calendar size={48} className="mx-auto mb-3 text-slate-400" />
                     <p className="text-slate-500 text-lg">No attendance records found</p>
@@ -246,9 +288,17 @@ export function AttendanceListPage() {
                     )}
                 </>
             )}
+
+            {(user?.type === "teacher" || user?.type === "admin") && isAddModalOpen && (
+                <FormModel
+                    open={isAddModalOpen}
+                    onClose={() => setIsAddModalOpen(false)}
+                    onSubmit={handleAddAttendance}
+                    title="Add Attendance"
+                    submitLabel="Save"
+                    fields={addAttendanceFields}
+                />
+            )}
         </div>
     );
 }
-
-
-

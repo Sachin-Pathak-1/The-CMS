@@ -1,22 +1,70 @@
 import { useMemo, useState } from "react";
-import { Pagination } from "../../../components/Pagination";
-import { Table } from "../../../components/Table";
-import { TableSearch } from "../../../components/TableSearch";
-import { FormModel } from "../../../components/FormModel";
-import { FilterModal } from "../../../components/FilterModal";
-import { getVisibleRows } from "../../../lib/listUtils";
+import { Search, Plus, Trash2, BookOpen, ArrowUpDown } from "lucide-react";
 import { useBackendList } from "../../../hooks/useBackendList";
 import { usePagination } from "../../../hooks/usePagination";
+import { getVisibleRows } from "../../../lib/listUtils";
 import { apiRequest } from "../../../lib/apiClient";
 import { useAuth } from "../../../contexts/AuthContext";
+import { FormModel } from "../../../components/FormModel";
+import { Card } from "../../../lib/designSystem";
+
+const cn = (...classes) => classes.filter(Boolean).join(" ");
+
+// Custom StatsCard for subjects page
+function StatsCard({ icon, label, value, color = "blue" }) {
+  const Icon = icon;
+  const colorClasses = {
+    blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
+    emerald: { bg: "from-emerald-600 to-emerald-400", accent: "bg-emerald-100 text-emerald-600" },
+  };
+
+  return (
+    <Card gradient className="p-6 group relative overflow-hidden">
+      <div className={cn("absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity", `bg-gradient-to-br ${colorClasses[color].bg}`)} />
+      <div className="relative z-10">
+        <div className={cn("w-12 h-12 p-3 rounded-xl mb-3", colorClasses[color].accent)}>
+          <Icon size={24} />
+        </div>
+        <p className="text-slate-600 text-sm font-medium mb-1">{label}</p>
+        <p className="text-3xl font-bold text-slate-900">{value}</p>
+      </div>
+    </Card>
+  );
+}
+
+function SubjectCard({ subject, onDelete, canManage }) {
+  return (
+    <Card gradient className="p-5 group">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-slate-900 truncate text-lg">{subject.name}</h3>
+          {subject.description && <p className="text-sm text-slate-500 truncate mt-1">{subject.description}</p>}
+          {subject.teachers && subject.teachers.length > 0 && (
+            <p className="text-xs text-slate-500 mt-3">
+              Teachers: {Array.isArray(subject.teachers) ? subject.teachers.join(", ") : subject.teachers}
+            </p>
+          )}
+        </div>
+        {canManage && (
+          <button
+            onClick={() => onDelete(subject.id)}
+            className="p-2 hover:bg-rose-50 rounded-lg transition ms-4"
+            title="Delete subject"
+          >
+            <Trash2 size={18} className="text-rose-600" />
+          </button>
+        )}
+      </div>
+    </Card>
+  );
+}
 
 export function SubjectListPage() {
     const { data: subjects, loading, error, reload } = useBackendList("subjects");
     const { user } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-    const [filterQuery, setFilterQuery] = useState("");
-    const [sortDirection, setSortDirection] = useState("none");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortBy, setSortBy] = useState("name");
     const [actionError, setActionError] = useState("");
 
     const canManageSubjects = user?.type === "admin" || user?.type === "teacher";
@@ -24,12 +72,6 @@ export function SubjectListPage() {
     const addSubjectFields = [
         { name: "name", placeholder: "Subject Name" },
         { name: "description", placeholder: "Description", fullWidth: true, required: false },
-    ];
-
-    const columns = [
-        { header: "Subject Name", accessor: "name" },
-        { header: "Teachers", accessor: "teachers", className: "hidden md:table-cell" },
-        { header: "Actions", accessor: "action" },
     ];
 
     const handleAddSubject = async (formData) => {
@@ -59,105 +101,107 @@ export function SubjectListPage() {
         }
     };
 
-    const renderSubjectRow = (row, rowIndex) => (
-        <tr
-            key={row.id}
-            className={`border-t border-slate-100 transition hover:bg-slate-50/80 ${rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50/40"}`}
-        >
-            {columns.map((col) => {
-                if (col.accessor === "action") {
-                    return (
-                        <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
-                            {canManageSubjects ? (
-                                <div className="flex justify-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDeleteSubject(row.id)}
-                                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 transition hover:bg-rose-100"
-                                    >
-                                        <img src="/delete.png" width={14} height={14} />
-                                    </button>
-                                </div>
-                            ) : null}
-                        </td>
-                    );
-                }
-
-                const value = row[col.accessor];
-                return (
-                    <td key={col.accessor} className={`px-4 py-4 ${col.className || ""}`}>
-                        {Array.isArray(value) ? value.join(", ") : value}
-                    </td>
-                );
-            })}
-        </tr>
-    );
-
     const visibleSubjects = useMemo(
-        () => getVisibleRows(subjects, { query: filterQuery, sortAccessor: "name", sortDirection }),
-        [subjects, filterQuery, sortDirection]
+        () => getVisibleRows(subjects, { query: searchTerm, sortAccessor: "name", sortDirection: "asc" }),
+        [subjects, searchTerm]
     );
-    const {
-        currentPage,
-        pageSize,
-        paginatedData: paginatedSubjects,
-        setCurrentPage,
-        totalItems,
-        totalPages,
-    } = usePagination(visibleSubjects, { pageSize: 10 });
+
+    const { currentPage, paginatedData: paginatedSubjects, setCurrentPage, totalPages } = usePagination(
+        visibleSubjects,
+        { pageSize: 6 }
+    );
+
+    const totalSubjects = subjects.length;
 
     return (
-        <>
-            <div className="glass-panel-strong m-4 mt-0 flex-1 p-5">
-                <div className="mb-5 flex items-center justify-between">
-                    <h1 className="hidden text-lg font-semibold md:block">All Subjects</h1>
-                    <div className="flex w-full flex-col items-center gap-4 md:w-auto md:flex-row">
-                        <TableSearch />
-                        <div className="flex items-center gap-4 self-end">
-                            <button
-                                type="button"
-                                onClick={() => setIsFilterModalOpen(true)}
-                                title="Filter subjects"
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
-                            >
-                                <img src="/filter.png" alt="" width={14} height={14} />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setCurrentPage(1);
-                                    setSortDirection((prev) => (prev === "none" ? "asc" : prev === "asc" ? "desc" : "none"));
-                                }}
-                                title={`Sort by subject (${sortDirection})`}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
-                            >
-                                <img src="/sort.png" alt="" width={14} height={14} />
-                            </button>
-                            {canManageSubjects ? (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsAddModalOpen(true)}
-                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white/80 border border-slate-200 shadow-sm "
-                                >
-                                    <img src="/plus.png" alt="" width={14} height={14} />
-                                </button>
-                            ) : null}
-                        </div>
-                    </div>
-                </div>
-                {loading && <p className="mb-3 text-sm text-slate-500">Loading subjects...</p>}
-                {error && <p className="mb-3 text-sm text-rose-600">{error}</p>}
-                {actionError && <p className="mb-3 text-sm text-rose-600">{actionError}</p>}
-                <Table columns={columns} data={paginatedSubjects} renderRow={renderSubjectRow} />
-                <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    pageSize={pageSize}
-                    onPageChange={setCurrentPage}
-                />
+        <div className="space-y-8 px-4 py-8 md:px-8">
+            <div className="flex flex-col gap-2 mb-6">
+                <span className="text-xs font-semibold text-emerald-600 uppercase tracking-widest">Subjects Management</span>
+                <h1 className="text-4xl font-bold text-gray-800">Subjects</h1>
+                <p className="text-gray-600">Manage and organize all subjects</p>
             </div>
-            {canManageSubjects ? (
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <StatsCard icon={BookOpen} label="Total Subjects" value={totalSubjects} color="emerald" />
+                <StatsCard icon={BookOpen} label="Managed by You" value={subjects.length} color="blue" />
+            </div>
+
+            <Card className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="flex-1 relative">
+                    <Search size={18} className="absolute left-3 top-3 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search subjects..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none transition"
+                    />
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setSortBy(sortBy === "name" ? "date" : "name")}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition"
+                    >
+                        <ArrowUpDown size={16} /> Sort
+                    </button>
+                    {canManageSubjects && (
+                        <button
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition"
+                        >
+                            <Plus size={18} /> Add Subject
+                        </button>
+                    )}
+                </div>
+            </Card>
+
+            {loading && <p className="text-center text-sm text-slate-500">Loading subjects...</p>}
+            {error && <p className="text-center text-sm text-rose-600">{error}</p>}
+            {actionError && <p className="text-center text-sm text-rose-600">{actionError}</p>}
+
+            {paginatedSubjects.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4">
+                    {paginatedSubjects.map((subject) => (
+                        <SubjectCard
+                            key={subject.id}
+                            subject={subject}
+                            onDelete={handleDeleteSubject}
+                            canManage={canManageSubjects}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-12">
+                    <p className="text-slate-500">No subjects found</p>
+                </div>
+            )}
+
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6">
+                    <button
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 rounded-lg border border-gray-200 disabled:opacity-50 hover:bg-gray-50"
+                    >
+                        Previous
+                    </button>
+                    <span className="text-sm text-slate-600">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 rounded-lg border border-gray-200 disabled:opacity-50 hover:bg-gray-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
+
+            {canManageSubjects && (
                 <FormModel
                     open={isAddModalOpen}
                     onClose={() => setIsAddModalOpen(false)}
@@ -166,18 +210,7 @@ export function SubjectListPage() {
                     submitLabel="Add Subject"
                     fields={addSubjectFields}
                 />
-            ) : null}
-            <FilterModal
-                open={isFilterModalOpen}
-                onClose={() => setIsFilterModalOpen(false)}
-                onApply={(nextQuery) => {
-                    setCurrentPage(1);
-                    setFilterQuery(nextQuery);
-                    setIsFilterModalOpen(false);
-                }}
-                initialValue={filterQuery}
-                title="Filter Subjects"
-            />
-        </>
+            )}
+        </div>
     );
 }

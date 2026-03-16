@@ -102,21 +102,21 @@ const getUserDetailsByID = async (id) => {
         return null;
     }
 
+    // Get wallet using Prisma query instead of raw SQL
     let wallet = null;
-
     try {
-        const walletRows = await prisma.$queryRaw`
-            SELECT wallet_id, balance
-            FROM wallet
-            WHERE user_id = ${id}
-            LIMIT 1
-        `;
-
-        if (Array.isArray(walletRows) && walletRows.length > 0) {
-            const row = walletRows[0];
+        const walletData = await prisma.wallet.findUnique({
+            where: { userId: id },
+            select: {
+                id: true,
+                balance: true,
+            },
+        });
+        
+        if (walletData) {
             wallet = {
-                id: row.wallet_id,
-                balance: row.balance,
+                id: walletData.id,
+                balance: walletData.balance,
             };
         }
     } catch (error) {

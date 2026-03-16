@@ -10,24 +10,14 @@ import { usePagination } from "../../../hooks/usePagination";
 import { apiRequest } from "../../../lib/apiClient";
 import { useAuth } from "../../../contexts/AuthContext";
 import { Search, Plus, Filter, Trash2, Users, Grid } from "lucide-react";
+import { Card } from "../../../lib/designSystem";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl hover:shadow-lg"
-                : "bg-white border-slate-200 shadow-sm hover:shadow-md",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
-
-function StatsCard({ label, value, icon: Icon, color = "blue" }) {
+// Custom StatsCard for list pages
+function StatsCard(props) {
+    const { label, value, icon, color = "blue" } = props;
+    const Icon = icon;
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
         purple: { bg: "from-purple-600 to-purple-400", accent: "bg-purple-100 text-purple-600" },
@@ -215,10 +205,10 @@ export function ClassesListPage() {
                             {Array.from({ length: totalPages }).map((_, i) => (
                                 <button
                                     key={i}
-                                    onClick={() => setCurrentPage(i)}
+                                    onClick={() => setCurrentPage(i + 1)}
                                     className={cn(
                                         "w-10 h-10 rounded-lg font-medium transition",
-                                        currentPage === i
+                                        currentPage === i + 1
                                             ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
                                             : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
                                     )}

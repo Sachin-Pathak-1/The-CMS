@@ -10,37 +10,27 @@ import { useBackendList } from "../../../hooks/useBackendList";
 import { usePagination } from "../../../hooks/usePagination";
 import { apiRequest } from "../../../lib/apiClient";
 import { useAuth } from "../../../contexts/AuthContext";
+import { Card } from "../../../lib/designSystem";
+import { exportToCsv } from "../../../lib/exportCsv";
 import { Search, Plus, Filter, Eye, Trash2, BookOpen, Users } from "lucide-react";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-// Card Component
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl hover:shadow-lg"
-                : "bg-white border-slate-200 shadow-sm hover:shadow-md",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
-
-// Stats Card
-function StatsCard({ label, value, icon: Icon, color = "blue" }) {
+// Custom StatsCard for teacher list page
+function StatsCard({ icon, label, value, color = "blue" }) {
+    const Icon = icon;
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
+        purple: { bg: "from-purple-600 to-purple-400", accent: "bg-purple-100 text-purple-600" },
         emerald: { bg: "from-emerald-600 to-emerald-400", accent: "bg-emerald-100 text-emerald-600" },
     };
+    const palette = colorClasses[color] || colorClasses.blue;
 
     return (
         <Card gradient className="p-6 group relative overflow-hidden">
-            <div className={cn("absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity", `bg-gradient-to-br ${colorClasses[color].bg}`)} />
+            <div className={cn("absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-10 group-hover:opacity-20 transition-opacity", `bg-gradient-to-br ${palette.bg}`)} />
             <div className="relative z-10">
-                <div className={cn("w-12 h-12 p-3 rounded-xl mb-3", colorClasses[color].accent)}>
+                <div className={cn("w-12 h-12 p-3 rounded-xl mb-3", palette.accent)}>
                     <Icon size={24} />
                 </div>
                 <p className="text-slate-600 text-sm font-medium mb-1">{label}</p>
@@ -107,7 +97,6 @@ export function TeacherListPage() {
     const { data: teachers, loading, error, reload } = useBackendList("teachers");
     const { user } = useAuth();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [filterQuery, setFilterQuery] = useState("");
     const [sortDirection, setSortDirection] = useState("none");
     const [actionError, setActionError] = useState("");
     const [searchInput, setSearchInput] = useState("");
@@ -169,10 +158,8 @@ export function TeacherListPage() {
 
     const {
         currentPage,
-        pageSize,
         paginatedData: paginatedTeachers,
         setCurrentPage,
-        totalItems,
         totalPages,
     } = usePagination(visibleTeachers, { pageSize: 9 });
 
@@ -219,6 +206,12 @@ export function TeacherListPage() {
                         />
                     </div>
                     <div className="flex gap-3 justify-end">
+                        <button
+                            onClick={() => exportToCsv("teachers.csv", visibleTeachers)}
+                            className="px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition"
+                        >
+                            Export CSV
+                        </button>
                         <button
                             onClick={() => {
                                 setCurrentPage(1);

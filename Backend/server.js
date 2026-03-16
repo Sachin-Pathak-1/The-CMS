@@ -9,7 +9,6 @@ import marketRouter from "./routes/market.route.js";
 import dashboardRouter from "./routes/dashboard.routes.js";
 import userRouter from "./routes/user.routes.js";
 import academicRouter from "./routes/academic.routes.js";
-import walletRouter from "./routes/wallet.routes.js";
 import logRouter from "./routes/log.routes.js";
 import collegeRouter from "./routes/college.routes.js";
 import addressRouter from "./routes/address.routes.js";
@@ -25,6 +24,9 @@ import orderRouter from "./routes/order.routes.js";
 import publicRouter from "./routes/public.routes.js";
 import uploadRouter from "./routes/upload.routes.js";
 import chatRouter from "./routes/chat.routes.js";
+import attendanceRouter from "./routes/attendance.routes.js";
+import walletRouter from "./routes/wallet.routes.js";
+import admissionRouter from "./routes/admission.routes.js";
 
 // Middleware imports
 import errorHandler from "./middleware/errorHandler.js";
@@ -71,6 +73,8 @@ app.use("/orders", orderRouter);
 app.use("/public", publicRouter);
 app.use("/uploads", uploadRouter);
 app.use("/chat", chatRouter);
+app.use("/attendance", attendanceRouter);
+app.use("/admissions", admissionRouter);
 
 // 404 handler
 app.use((req, res) => {

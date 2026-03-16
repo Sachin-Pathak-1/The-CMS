@@ -22,6 +22,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, AreaChart, Area, RadialBarChart, RadialBar } from "recharts";
 import { apiRequest } from "../../lib/apiClient";
 import { useAuth } from "../../contexts/AuthContext";
+import { Card } from "../../lib/designSystem";
 
 const emptySummary = {
     userCounts: { student: 0, teacher: 0, parent: 0, staff: 0, admin: 0 },
@@ -29,8 +30,6 @@ const emptySummary = {
     attendance: [],
     finance: [],
 };
-
-const cn = (...values) => values.filter(Boolean).join(" ");
 
 const formatDate = (value) => {
     if (!value) return "No date";
@@ -50,43 +49,28 @@ const formatCompact = (value) => {
     }).format(Number(value || 0));
 };
 
-// Modern Card Component with Glassmorphism
-function Card({ children, className = "", gradient = false, glass = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300 hover:shadow-lg",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl"
-                : "bg-white border-slate-200 shadow-sm",
-            glass && "backdrop-blur-xl bg-white/10 border-white/20",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
+const cn = (...values) => values.filter(Boolean).join(" ");
 
-// Progress Bar Component
+// Simple progress bar for gender distribution
 function ProgressBar({ value, max = 100, color = "blue" }) {
-    const percentage = (value / max) * 100;
+    const percentage = Math.min(100, Math.max(0, (Number(value) / Number(max || 1)) * 100));
     const colorClasses = {
         blue: "bg-gradient-to-r from-blue-400 to-blue-600",
-        emerald: "bg-gradient-to-r from-emerald-400 to-emerald-600",
-        amber: "bg-gradient-to-r from-amber-400 to-amber-600",
         purple: "bg-gradient-to-r from-purple-400 to-purple-600",
+        emerald: "bg-gradient-to-r from-emerald-400 to-emerald-600",
     };
     return (
-        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+        <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
             <div
-                className={cn("h-full transition-all duration-500", colorClasses[color])}
+                className={cn("h-full transition-all duration-500", colorClasses[color] || colorClasses.blue)}
                 style={{ width: `${percentage}%` }}
             />
         </div>
     );
 }
 
-// Enhanced Stats Card with Trend
-function StatsCard({ icon: Icon, label, value, trend, trendValue, color = "blue", target = null }) {
+// Custom StatsCard with color variants
+function StatsCard({ icon, label, value, trend, trendValue, color = "blue" }) {
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
         emerald: { bg: "from-emerald-600 to-emerald-400", accent: "bg-emerald-100 text-emerald-600" },
@@ -94,6 +78,7 @@ function StatsCard({ icon: Icon, label, value, trend, trendValue, color = "blue"
         purple: { bg: "from-purple-600 to-purple-400", accent: "bg-purple-100 text-purple-600" },
         rose: { bg: "from-rose-600 to-rose-400", accent: "bg-rose-100 text-rose-600" },
     };
+    const Icon = icon;
 
     return (
         <Card gradient className="p-6 group relative overflow-hidden">
@@ -103,7 +88,7 @@ function StatsCard({ icon: Icon, label, value, trend, trendValue, color = "blue"
             <div className="relative z-10">
                 <div className="flex justify-between items-start mb-4">
                     <div className={cn("p-3 rounded-xl", colorClasses[color].accent)}>
-                        <Icon size={24} />
+                        {Icon && <Icon size={24} />}
                     </div>
                     {trendValue && (
                         <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg text-xs font-semibold">
@@ -116,13 +101,6 @@ function StatsCard({ icon: Icon, label, value, trend, trendValue, color = "blue"
                 <p className="text-slate-600 text-sm font-medium mb-1">{label}</p>
                 <p className="text-4xl font-bold text-slate-900 mb-3">{value}</p>
                 
-                {target && (
-                    <>
-                        <p className="text-xs text-slate-500 mb-2">Progress to target: {target}%</p>
-                        <ProgressBar value={parseInt(value)} max={parseInt(target)} color={color} />
-                    </>
-                )}
-                
                 {trend && (
                     <p className="text-xs text-slate-500 mt-3">{trend}</p>
                 )}
@@ -132,13 +110,14 @@ function StatsCard({ icon: Icon, label, value, trend, trendValue, color = "blue"
 }
 
 // Enhanced Chart Card
-function ChartCard({ title, subtitle, children, icon: Icon, action }) {
+function ChartCard({ title, subtitle, children, icon, action }) {
+    const Icon = icon;
     return (
-        <Card gradient className="p-6">
+        <Card gradient className="p-6 min-w-0">
             <div className="flex items-start justify-between mb-6">
                 <div className="flex items-start gap-3">
                     <div className="p-2.5 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl">
-                        <Icon size={20} className="text-indigo-600" />
+                        {Icon && <Icon size={20} className="text-indigo-600" />}
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
@@ -158,16 +137,17 @@ function ChartCard({ title, subtitle, children, icon: Icon, action }) {
 }
 
 // Metric Badge
-function MetricBadge({ label, value, icon: Icon, color = "blue" }) {
+function MetricBadge({ label, value, icon, color = "blue" }) {
     const colorClasses = {
         blue: "bg-blue-50 text-blue-700 border-blue-200",
         emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
         amber: "bg-amber-50 text-amber-700 border-amber-200",
         purple: "bg-purple-50 text-purple-700 border-purple-200",
     };
+    const Icon = icon;
     return (
         <div className={cn("p-3 rounded-lg border flex items-center gap-3", colorClasses[color])}>
-            <Icon size={18} />
+            {Icon && <Icon size={18} />}
             <div>
                 <p className="text-xs font-medium opacity-75">{label}</p>
                 <p className="text-lg font-bold">{value}</p>
@@ -177,7 +157,7 @@ function MetricBadge({ label, value, icon: Icon, color = "blue" }) {
 }
 
 // Navigation Card
-function NavCard({ to, label, description, icon: Icon, color = "blue" }) {
+function NavCard({ to, label, description, icon, color = "blue" }) {
     const colorClasses = {
         blue: "hover:from-blue-50 hover:to-blue-50/30 hover:border-blue-300",
         emerald: "hover:from-emerald-50 hover:to-emerald-50/30 hover:border-emerald-300",
@@ -194,6 +174,7 @@ function NavCard({ to, label, description, icon: Icon, color = "blue" }) {
         rose: "from-rose-500 to-rose-600",
     };
 
+    const Icon = icon;
     return (
         <Link to={to}>
             <Card gradient className={cn("p-5 cursor-pointer group bg-gradient-to-br", colorClasses[color])}>
@@ -203,7 +184,7 @@ function NavCard({ to, label, description, icon: Icon, color = "blue" }) {
                         <p className="text-sm text-slate-500 mt-1">{description}</p>
                     </div>
                     <div className={cn("p-2.5 rounded-xl bg-gradient-to-br text-white group-hover:scale-110 transition-transform", iconColors[color])}>
-                        <Icon size={18} />
+                        {Icon && <Icon size={18} />}
                     </div>
                 </div>
             </Card>
@@ -303,6 +284,12 @@ export function AdminPage() {
                 <p className="text-slate-600 text-lg mt-2">Welcome back, {user?.username || 'Admin'}. Here's what's happening with your institution today.</p>
             </div>
 
+            {loading && (
+                <div className="mb-6 p-3 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    Loading dashboard data...
+                </div>
+            )}
+
             {/* Error Alert */}
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 animate-pulse">
@@ -358,7 +345,7 @@ export function AdminPage() {
                         icon={Activity}
                         action={{ label: "View Report", href: "/list/attendance" }}
                     >
-                        <div className="h-80">
+                        <div className="h-80 min-h-[320px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={attendanceData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
@@ -392,7 +379,7 @@ export function AdminPage() {
                         icon={DollarSign}
                         action={{ label: "Financial Reports", href: "/wallet" }}
                     >
-                        <div className="h-80">
+                        <div className="h-80 min-h-[320px]">
                             <svg width="0" height="0">
                                 <defs>
                                     <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
@@ -436,8 +423,8 @@ export function AdminPage() {
                         icon={PieChartIcon}
                     >
                         <div className="space-y-4">
-                            <div className="flex items-center justify-center h-40">
-                                <ResponsiveContainer width="100%" height="100%">
+                            <div className="flex items-center justify-center h-40 min-h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                                     <PieChart>
                                         <Pie
                                             data={[

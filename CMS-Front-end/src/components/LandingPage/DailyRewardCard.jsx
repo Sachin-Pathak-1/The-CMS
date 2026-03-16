@@ -1,7 +1,7 @@
 import React from 'react';
 import { GiftIcon, CoinIcon } from './LandingIcons';
 
-const DailyRewardCard = ({ isDarkMode, iconColor, specialEliteFont, DAILY_POINTS, dailyClaimed, claimDailyPoints }) => {
+const DailyRewardCard = ({ isDarkMode, iconColor, DAILY_POINTS, dailyClaimed, claimDailyPoints }) => {
     if (!dailyClaimed) {
         return (
             <div

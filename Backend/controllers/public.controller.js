@@ -197,21 +197,21 @@ async function getResultsList() {
 }
 
 async function getAttendanceList() {
-  const enrollments = await prisma.enrollment.findMany({
+  const records = await prisma.attendance.findMany({
     include: {
       user: { include: { userDetails: true } },
       course: true,
     },
-    orderBy: { enrolledAt: "desc" },
+    orderBy: { date: "desc" },
+    take: 200,
   });
 
-  return enrollments.map((enrollment, index) => ({
-    id: `${enrollment.userId}-${enrollment.courseId}`,
-    student: fullName(enrollment.user?.userDetails, enrollment.user?.username || "N/A"),
-    class: enrollment.course?.name || "N/A",
-    date: formatDate(enrollment.enrolledAt),
-    status: index % 5 === 0 ? "Late" : "Present",
-    checkIn: index % 5 === 0 ? "08:20" : "08:00",
+  return records.map((item) => ({
+    id: item.id,
+    studentName: fullName(item.user?.userDetails, item.user?.username || "Student"),
+    class: item.course?.name || "N/A",
+    status: item.status || "Present",
+    date: formatDate(item.date),
   }));
 }
 
