@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
     Users,
@@ -17,32 +17,19 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
 import { useAuth } from "../../contexts/AuthContext";
 import { apiRequest } from "../../lib/apiClient";
+import { Card } from "../../lib/designSystem";
 
 const cn = (...values) => values.filter(Boolean).join(" ");
 
-// Card Component
-function Card({ children, className = "", gradient = false }) {
-    return (
-        <div className={cn(
-            "rounded-2xl border transition-all duration-300 hover:shadow-lg",
-            gradient
-                ? "bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-xl border-white/30 shadow-2xl"
-                : "bg-white border-slate-200 shadow-sm",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
-
-// Stats Card
-function StatsCard({ icon: Icon, label, value, subtitle, color = "blue" }) {
+// Custom StatsCard with color variants
+function CustomStatsCard({ icon, label, value, subtitle, color = "blue" }) {
     const colorClasses = {
         blue: { bg: "from-blue-600 to-blue-400", accent: "bg-blue-100 text-blue-600" },
         emerald: { bg: "from-emerald-600 to-emerald-400", accent: "bg-emerald-100 text-emerald-600" },
         amber: { bg: "from-amber-600 to-amber-400", accent: "bg-amber-100 text-amber-600" },
         purple: { bg: "from-purple-600 to-purple-400", accent: "bg-purple-100 text-purple-600" },
     };
+    const Icon = icon;
 
     return (
         <Card gradient className="p-6 group relative overflow-hidden">
@@ -61,9 +48,10 @@ function StatsCard({ icon: Icon, label, value, subtitle, color = "blue" }) {
 }
 
 // Chart Card
-function ChartCard({ title, subtitle, children, icon: Icon, action }) {
+function ChartCard({ title, subtitle, children, icon, action }) {
+    const Icon = icon;
     return (
-        <Card gradient className="p-6">
+        <Card gradient className="p-6 min-w-0">
             <div className="flex items-start justify-between mb-6">
                 <div className="flex items-start gap-3">
                     <div className="p-2.5 bg-gradient-to-br from-blue-100 to-purple-100 rounded-xl">
@@ -131,6 +119,14 @@ export function TeacherPage() {
         loadData();
     }, []);
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-slate-600">
+                Loading teacher dashboard...
+            </div>
+        );
+    }
+
     // Mock student performance data
     const classPerformanceData = [
         { class: "Class A", avgGrade: 85 },
@@ -177,28 +173,28 @@ export function TeacherPage() {
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                <StatsCard
+                <CustomStatsCard
                     icon={Users}
                     label="Total Students"
                     value="120"
                     subtitle="Across 4 classes"
                     color="blue"
                 />
-                <StatsCard
+                <CustomStatsCard
                     icon={BookOpen}
                     label="Active Classes"
                     value="4"
                     subtitle="This semester"
                     color="emerald"
                 />
-                <StatsCard
+                <CustomStatsCard
                     icon={FileText}
                     label="Pending Grades"
                     value="18"
                     subtitle="To be reviewed"
                     color="amber"
                 />
-                <StatsCard
+                <CustomStatsCard
                     icon={TrendingUp}
                     label="Class Average"
                     value="86%"
@@ -217,8 +213,8 @@ export function TeacherPage() {
                         subtitle="Average grades by class"
                         icon={BarChart3}
                     >
-                        <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div className="h-80 min-h-[320px] w-full">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={320}>
                                 <BarChart data={classPerformanceData}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                                     <XAxis dataKey="class" stroke="#94a3b8" style={{ fontSize: '12px' }} />
@@ -236,8 +232,8 @@ export function TeacherPage() {
                         subtitle="Assignments submitted vs graded"
                         icon={CheckCircle}
                     >
-                        <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div className="h-80 min-h-[320px] w-full">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={320}>
                                 <BarChart data={gradingData}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                                     <XAxis dataKey="week" stroke="#94a3b8" style={{ fontSize: '12px' }} />
@@ -259,8 +255,8 @@ export function TeacherPage() {
                         subtitle="By period"
                         icon={Users}
                     >
-                        <div className="h-72 flex items-center justify-center">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <div className="h-72 min-h-[280px] w-full flex items-center justify-center">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
                                 <PieChart>
                                     <Pie
                                         data={classDistribution}
